@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: crawler-dytt
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 5s
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 3
+        min-idle: 1
+        max-wait: 5s
+
+crawler:
+  front:
+    script-sha1: rrrrrrrrrrrrrrrrrrrrrrr
+    remove-top-script: classpath:/redis-script/front-remove-top-script.lua
+
+
+
+
