@@ -4,6 +4,7 @@ import com.wxl.crawlerdytt.core.DyttUrl;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
  */
 public abstract class FilteredHandler<T> implements HtmlHandler {
 
-    private List<DyttFilter<T>> filters;
+    private List<DyttFilter<T>> filters = new ArrayList<>();
 
 
     @Override
@@ -31,4 +32,9 @@ public abstract class FilteredHandler<T> implements HtmlHandler {
 
     protected abstract T handle(DyttUrl url, Document doc);
 
+
+    public FilteredHandler<T> addFilter(DyttFilter<T> filter) {
+        filters.add(filter);
+        return this;
+    }
 }

@@ -6,9 +6,8 @@ import com.wxl.crawlerdytt.core.HtmlDownLoader;
 import com.wxl.crawlerdytt.frontier.Frontier;
 import com.wxl.crawlerdytt.frontier.VisitedFrontier;
 import com.wxl.crawlerdytt.handler.HtmlHandler;
-import com.wxl.crawlerdytt.handler.HtmlHandlerMapping;
-import com.wxl.crawlerdytt.handler.ResultHandler;
-import com.wxl.crawlerdytt.handler.ResultHandlerMapping;
+import com.wxl.crawlerdytt.handler.HtmlResultHandler;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,8 +16,10 @@ import java.util.List;
 /**
  * Create by wuxingle on 2020/5/1
  * 默认爬取器
+ * face
  */
 @Slf4j
+@Data
 public class DefaultCrawler implements DyttCrawler {
 
     private HtmlDownLoader downLoader;
@@ -27,9 +28,9 @@ public class DefaultCrawler implements DyttCrawler {
 
     private VisitedFrontier visitedFrontier;
 
-    private List<HtmlHandlerMapping> handlerMappings;
+    private List<HtmlHandler> htmlHandlers;
 
-    private List<ResultHandlerMapping> resultHandlerMappings;
+    private List<HtmlResultHandler> resultHandlers;
 
     @Override
     public void crawl() {
@@ -51,7 +52,7 @@ public class DefaultCrawler implements DyttCrawler {
 
             Object result = handler.handle(url, html);
 
-            ResultHandler resultHandler = getResultHandler(result);
+            HtmlResultHandler resultHandler = getResultHandler(result);
 
             if (resultHandler == null) {
                 log.warn("result:{} can not found result handler!", result);
@@ -64,19 +65,17 @@ public class DefaultCrawler implements DyttCrawler {
     }
 
     private HtmlHandler getHandler(DyttUrl url, String html) {
-        for (HtmlHandlerMapping handlerMapping : handlerMappings) {
-            HtmlHandler handler = handlerMapping.getHandler(url, html);
-            if (handler != null) {
-                return handler;
+        for (HtmlHandler htmlHandler : htmlHandlers) {
+            if (htmlHandler.support(url, html)) {
+                return htmlHandler;
             }
         }
         return null;
     }
 
-    private ResultHandler getResultHandler(Object result) {
-        for (ResultHandlerMapping resultHandlerMapping : resultHandlerMappings) {
-            ResultHandler resultHandler = resultHandlerMapping.getResultHandler(result);
-            if (resultHandler != null) {
+    private HtmlResultHandler getResultHandler(Object result) {
+        for (HtmlResultHandler resultHandler : resultHandlers) {
+            if (resultHandler.support(result)) {
                 return resultHandler;
             }
         }

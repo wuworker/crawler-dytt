@@ -9,6 +9,11 @@ import com.wxl.crawlerdytt.core.DyttUrl;
 public interface HtmlHandler {
 
     /**
+     * 是否能够处理
+     */
+    boolean support(DyttUrl url, String html);
+
+    /**
      * 页面解析
      *
      * @return 处理结果

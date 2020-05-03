@@ -28,12 +28,6 @@ public class HttpClientDownLoader implements HtmlDownLoader {
         this.defaultHandler = new DefaultResponseHandler();
     }
 
-    public HttpClientDownLoader(CloseableHttpClient httpClient,
-                                ResponseHandler<String> defaultHandler) {
-        this.httpClient = httpClient;
-        this.defaultHandler = defaultHandler;
-    }
-
     @Override
     public String download(String url) throws IOException {
         return download(url, defaultHandler);

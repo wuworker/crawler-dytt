@@ -4,14 +4,12 @@ import com.wxl.crawlerdytt.core.DyttUrl;
 import com.wxl.crawlerdytt.frontier.Frontier;
 import com.wxl.crawlerdytt.utils.IntegerRedisSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,10 +21,7 @@ import java.util.Set;
  * redis zset实现todo表
  */
 @Slf4j
-@Component
 public class RedisFrontier implements Frontier {
-
-    public static final String REMOVE_TOP_SCRIPT_BEAN_NAME = "removeTopScript";
 
     private static final String DEFAULT_KEY = "dyttFrontier";
 
@@ -41,7 +36,7 @@ public class RedisFrontier implements Frontier {
     private ZSetOperations<String, Object> zsetOps;
 
     public RedisFrontier(RedisTemplate<String, Object> template,
-                         @Qualifier(REMOVE_TOP_SCRIPT_BEAN_NAME) RedisScript<Object> removeTopScript) {
+                         RedisScript<Object> removeTopScript) {
         this.template = template;
         this.zsetOps = template.opsForZSet();
         this.script = removeTopScript;
@@ -63,7 +58,7 @@ public class RedisFrontier implements Frontier {
     public void add(DyttUrl... urls) {
         Set<TypedTuple<Object>> sets = new HashSet<>(urls.length, 1);
         for (DyttUrl url : urls) {
-            sets.add(new DefaultTypedTuple<>(url, weight(url)));
+            sets.add(new DefaultTypedTuple<>(url, url.getWeight() * 1.0));
         }
 
         Long l = zsetOps.add(DEFAULT_KEY, sets);
@@ -72,12 +67,5 @@ public class RedisFrontier implements Frontier {
                 log.warn("add url fail:{}", l);
             }
         }
-    }
-
-    /**
-     * 计算权重
-     */
-    protected double weight(DyttUrl url) {
-        return url.getLayer();
     }
 }

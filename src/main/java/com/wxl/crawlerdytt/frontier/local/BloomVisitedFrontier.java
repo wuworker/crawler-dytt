@@ -3,7 +3,6 @@ package com.wxl.crawlerdytt.frontier.local;
 import com.google.common.hash.BloomFilter;
 import com.wxl.crawlerdytt.core.DyttUrl;
 import com.wxl.crawlerdytt.frontier.VisitedFrontier;
-import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 
@@ -11,7 +10,6 @@ import java.nio.charset.StandardCharsets;
  * Create by wuxingle on 2020/5/1
  * bloom 实现visited表
  */
-@Component
 public class BloomVisitedFrontier implements VisitedFrontier {
 
     private BloomFilter<DyttUrl> filter;

@@ -1,8 +1,9 @@
-package com.wxl.crawlerdytt.frontier.redis;
+package com.wxl.crawlerdytt.config;
 
 import com.google.common.io.CharStreams;
+import com.wxl.crawlerdytt.frontier.local.BloomVisitedFrontier;
+import com.wxl.crawlerdytt.frontier.redis.RedisFrontier;
 import com.wxl.crawlerdytt.properties.FrontierProperties;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -21,40 +22,36 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Create by wuxingle on 2020/5/2
- * redis配置
+ * 队列配置
  */
-@Slf4j
 @Configuration
 @EnableConfigurationProperties(FrontierProperties.class)
-public class RedisFrontierConfig {
+public class FrontierConfiguration {
 
     private final ResourceLoader resourceLoader;
 
     private final FrontierProperties frontierProperties;
 
     @Autowired
-    public RedisFrontierConfig(ResourceLoader resourceLoader,
-                               FrontierProperties frontierProperties) {
+    public FrontierConfiguration(ResourceLoader resourceLoader,
+                                 FrontierProperties frontierProperties) {
         this.resourceLoader = resourceLoader;
         this.frontierProperties = frontierProperties;
     }
 
+    /**
+     * visited队列
+     */
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        StringRedisSerializer stringSerializer = new StringRedisSerializer();
-        JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
-
-        template.setConnectionFactory(connectionFactory);
-        template.setStringSerializer(stringSerializer);
-        template.setValueSerializer(jdkSerializer);
-        template.setHashKeySerializer(stringSerializer);
-        template.setHashValueSerializer(jdkSerializer);
-        return template;
+    public BloomVisitedFrontier bloomVisitedFrontier() {
+        return new BloomVisitedFrontier();
     }
 
-    @Bean(RedisFrontier.REMOVE_TOP_SCRIPT_BEAN_NAME)
-    public RedisScript<Object> removeTopScript() throws IOException {
+    /**
+     * todo队列
+     */
+    @Bean
+    public RedisFrontier redisFrontier(RedisTemplate<String, Object> redisTemplate) throws IOException {
         String path = frontierProperties.getRemoveTopScript();
         String scriptSha1 = frontierProperties.getScriptSha1();
         String script;
@@ -62,8 +59,7 @@ public class RedisFrontierConfig {
             script = CharStreams.toString(new InputStreamReader(in, StandardCharsets.UTF_8));
         }
 
-
-        return new RedisScript<Object>() {
+        RedisScript<Object> removeTopScript = new RedisScript<Object>() {
             @Override
             public String getSha1() {
                 return scriptSha1;
@@ -79,7 +75,21 @@ public class RedisFrontierConfig {
                 return script;
             }
         };
+        return new RedisFrontier(redisTemplate, removeTopScript);
     }
 
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+        JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
+
+        template.setConnectionFactory(connectionFactory);
+        template.setStringSerializer(stringSerializer);
+        template.setValueSerializer(jdkSerializer);
+        template.setHashKeySerializer(stringSerializer);
+        template.setHashValueSerializer(jdkSerializer);
+        return template;
+    }
 
 }

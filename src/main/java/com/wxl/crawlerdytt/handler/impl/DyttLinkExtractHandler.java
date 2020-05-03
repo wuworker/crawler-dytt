@@ -8,14 +8,30 @@ import java.util.List;
 
 /**
  * Create by wuxingle on 2020/5/2
- * 电影天堂url处理器
+ * 页面链接提取
  */
-public class DyttUrlHandler extends FilteredHandler<List<DyttUrl>> {
+public class DyttLinkExtractHandler extends FilteredHandler<List<DyttUrl>> {
 
 
+    /**
+     * 页面解析
+     *
+     * @return 处理结果
+     */
     @Override
     protected List<DyttUrl> handle(DyttUrl url, Document doc) {
         return null;
     }
+
+
+    /**
+     * 是否能够处理
+     */
+    @Override
+    public boolean support(DyttUrl url, String html) {
+        return true;
+    }
+
+
 }
 
