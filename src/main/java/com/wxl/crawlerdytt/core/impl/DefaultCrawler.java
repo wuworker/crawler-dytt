@@ -1,5 +1,6 @@
 package com.wxl.crawlerdytt.core.impl;
 
+import com.wxl.crawlerdytt.core.DyttConstants;
 import com.wxl.crawlerdytt.core.DyttCrawler;
 import com.wxl.crawlerdytt.core.DyttUrl;
 import com.wxl.crawlerdytt.core.HtmlDownLoader;
@@ -84,7 +85,7 @@ public class DefaultCrawler implements DyttCrawler {
 
     private String downHtml(String url) {
         try {
-            return downLoader.download(url);
+            return downLoader.download(url, DyttConstants.DEFAULT_CHARSET);
         } catch (IOException e) {
             log.error("down load io error:{}", url, e);
         }

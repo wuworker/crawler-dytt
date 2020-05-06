@@ -1,6 +1,8 @@
 package com.wxl.crawlerdytt.core;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
@@ -9,10 +11,12 @@ import java.util.Date;
  * 上映时间
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class DyttReleaseDate {
 
-    // 时间
-    private Date date;
+    // 时间yyyy-MM-dd
+    private String date;
 
     // 地区
     private String place;

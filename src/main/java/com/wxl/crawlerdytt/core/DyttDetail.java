@@ -17,6 +17,9 @@ public class DyttDetail implements Serializable {
 
     private String id;
 
+    // 标题
+    private String title;
+
     // 地址链接
     private String url;
 
@@ -47,6 +50,9 @@ public class DyttDetail implements Serializable {
     // 豆瓣评分
     private Double score;
 
+    // 评分人数
+    private Integer scoreNums;
+
     // 上映时间
     private List<DyttReleaseDate> releaseDates;
 
@@ -62,11 +68,14 @@ public class DyttDetail implements Serializable {
     // 标签
     private List<String> tags;
 
+    // 获奖情况
+    private List<String> awards;
+
     // 简介
     private String desc;
 
     // 发布时间
-    private Date publishDate;
+    private String publishDate;
 
     // 下载地址
     private List<String> downLinks;
