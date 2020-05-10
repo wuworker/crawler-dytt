@@ -1,9 +1,9 @@
 package com.wxl.crawlerdytt.core;
 
+import com.alibaba.fastjson.JSON;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -90,4 +90,8 @@ public class DyttDetail implements Serializable {
     private String videoSize;
 
 
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this, true);
+    }
 }
