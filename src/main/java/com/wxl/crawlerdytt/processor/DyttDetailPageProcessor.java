@@ -4,7 +4,9 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.wxl.crawlerdytt.core.DyttDetail;
 import com.wxl.crawlerdytt.core.DyttReleaseDate;
+import com.wxl.crawlerdytt.priority.PriorityUrlCalculator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -56,6 +58,8 @@ public class DyttDetailPageProcessor implements DyttProcessor {
     private Pattern releaseDatePattern = Pattern.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})\\((.+)\\)");
     private List<String> linkStarts = Lists.newArrayList("ftp", "magnet");
 
+    @Autowired
+    private PriorityUrlCalculator priorityCalculator;
 
     @Override
     public void process(Page page) {
@@ -121,7 +125,7 @@ public class DyttDetailPageProcessor implements DyttProcessor {
             if (isDownloadLink(link)) {
                 downloads.add(link);
             } else {
-                page.addTargetRequest(link);
+                priorityCalculator.calculateAndAdd(page, link);
             }
         }
         dyttDetail.setDownLinks(downloads);

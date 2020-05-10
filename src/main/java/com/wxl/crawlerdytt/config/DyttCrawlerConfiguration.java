@@ -13,7 +13,7 @@ import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.pipeline.Pipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.scheduler.QueueScheduler;
+import us.codecraft.webmagic.scheduler.PriorityScheduler;
 import us.codecraft.webmagic.scheduler.Scheduler;
 import us.codecraft.webmagic.scheduler.component.HashSetDuplicateRemover;
 
@@ -66,10 +66,10 @@ public class DyttCrawlerConfiguration {
      */
     @Bean
     public Scheduler crawlerScheduler() {
-        QueueScheduler queueScheduler = new QueueScheduler();
-        queueScheduler.setDuplicateRemover(new HashSetDuplicateRemover());
+        PriorityScheduler priorityScheduler = new PriorityScheduler();
+        priorityScheduler.setDuplicateRemover(new HashSetDuplicateRemover());
 
-        return queueScheduler;
+        return priorityScheduler;
     }
 
     /**
