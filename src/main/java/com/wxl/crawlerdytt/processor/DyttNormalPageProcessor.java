@@ -1,14 +1,13 @@
 package com.wxl.crawlerdytt.processor;
 
-import com.wxl.crawlerdytt.priority.PriorityUrlCalculator;
+import com.wxl.crawlerdytt.urlhandler.PriorityUrlCalculator;
+import com.wxl.crawlerdytt.urlhandler.UrlFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
-
-import java.util.List;
 
 /**
  * Create by wuxingle on 2020/5/10
@@ -17,17 +16,18 @@ import java.util.List;
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE)
 @Component
-public class DyttNormalPageProcessor implements DyttProcessor {
+public class DyttNormalPageProcessor extends AbstractDyttProcessor {
+
 
     @Autowired
-    private PriorityUrlCalculator priorityCalculator;
+    public DyttNormalPageProcessor(PriorityUrlCalculator priorityCalculator,
+                                   UrlFilter urlFilter) {
+        super(priorityCalculator, urlFilter);
+    }
 
     @Override
     public void process(Page page) {
-        List<String> all = page.getHtml().links().all();
-        for (String url : all) {
-            priorityCalculator.calculateAndAdd(page, url);
-        }
+        addLinks(page);
     }
 
     @Override

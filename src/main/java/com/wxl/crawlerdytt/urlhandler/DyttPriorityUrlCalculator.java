@@ -1,4 +1,4 @@
-package com.wxl.crawlerdytt.priority;
+package com.wxl.crawlerdytt.urlhandler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

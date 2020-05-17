@@ -15,7 +15,7 @@ import java.util.List;
 public class ProcessorDispatcher implements PageProcessor {
 
 
-    private Site site ;
+    private Site site;
 
     private List<DyttProcessor> processors;
 

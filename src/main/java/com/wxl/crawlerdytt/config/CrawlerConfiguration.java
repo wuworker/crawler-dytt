@@ -1,13 +1,16 @@
 package com.wxl.crawlerdytt.config;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.wxl.crawlerdytt.core.DyttConstants;
 import com.wxl.crawlerdytt.processor.DyttProcessor;
 import com.wxl.crawlerdytt.processor.ProcessorDispatcher;
+import com.wxl.crawlerdytt.properties.CrawlerProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.Downloader;
@@ -17,17 +20,26 @@ import us.codecraft.webmagic.scheduler.PriorityScheduler;
 import us.codecraft.webmagic.scheduler.Scheduler;
 import us.codecraft.webmagic.scheduler.component.HashSetDuplicateRemover;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
  * Create by wuxingle on 2020/5/10
- * 电源天堂爬虫配置
+ * 爬虫配置
  */
 @Slf4j
 @Configuration
-public class DyttCrawlerConfiguration {
+@EnableConfigurationProperties(CrawlerProperties.class)
+public class CrawlerConfiguration {
+
+    private CrawlerProperties crawlerProperties;
+
+    @Autowired
+    public CrawlerConfiguration(CrawlerProperties crawlerProperties) {
+        this.crawlerProperties = crawlerProperties;
+    }
 
     @Bean
     public Spider spider(Downloader downloader,
@@ -35,10 +47,13 @@ public class DyttCrawlerConfiguration {
                          ExecutorService executorService,
                          PageProcessor pageProcessor,
                          Scheduler scheduler) {
+        String firstUrl = crawlerProperties.getFirstUrl();
+        Integer threads = crawlerProperties.getPool().getMaxSize();
+
         Spider spider = Spider.create(pageProcessor)
-                .addUrl("https://www.dytt8.net/html/gndy/dyzz/20200506/59996.html")
+                .addUrl(firstUrl)
                 .setExecutorService(executorService)
-                .thread(1)
+                .thread(threads)
                 .setExitWhenComplete(true)
                 .setScheduler(scheduler)
                 .setDownloader(downloader);
@@ -51,13 +66,15 @@ public class DyttCrawlerConfiguration {
      */
     @Bean
     public ExecutorService crawlerExecutorService() {
+        CrawlerProperties.PoolProperties pool = crawlerProperties.getPool();
+
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setDaemon(true)
-                .setNameFormat("dytt-pool-%s")
+                .setNameFormat(pool.getThreadNameFormat())
                 .build();
 
-        return new ThreadPoolExecutor(1, 10,
-                60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
+        return new ThreadPoolExecutor(pool.getCoreSize(), pool.getMaxSize(),
+                pool.getKeepAlive().getSeconds(), TimeUnit.SECONDS, new SynchronousQueue<>(),
                 threadFactory, new ThreadPoolExecutor.AbortPolicy());
     }
 
@@ -77,7 +94,24 @@ public class DyttCrawlerConfiguration {
      */
     @Bean
     public ProcessorDispatcher processorDispatcher(ObjectProvider<DyttProcessor> processors) {
-        Site site = Site.me().setCharset(DyttConstants.DEFAULT_CHARSET).setRetryTimes(1).setTimeOut(10000).setSleepTime(1000);
+        CrawlerProperties.SiteProperties siteProp = crawlerProperties.getSite();
+
+        Site site = Site.me()
+                .setCharset(crawlerProperties.getCharset())
+                .setUserAgent(siteProp.getUserAgent())
+                .setSleepTime((int) siteProp.getSleepTime().toMillis())
+                .setRetryTimes(siteProp.getRetryTimes())
+                .setRetrySleepTime((int) siteProp.getRetrySleepTime().toMillis())
+                .setTimeOut((int) siteProp.getTimeout().toMillis())
+                .setDisableCookieManagement(siteProp.isDisableCookie());
+
+        if (!CollectionUtils.isEmpty(siteProp.getAcceptStatusCode())) {
+            site.setAcceptStatCode(new HashSet<>(siteProp.getAcceptStatusCode()));
+        }
+        if (!CollectionUtils.isEmpty(siteProp.getHeaders())) {
+            siteProp.getHeaders().forEach(site::addHeader);
+        }
+
         List<DyttProcessor> collect = processors.orderedStream().collect(Collectors.toList());
         return new ProcessorDispatcher(site, collect);
     }

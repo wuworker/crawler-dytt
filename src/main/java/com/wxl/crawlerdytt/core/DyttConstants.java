@@ -6,6 +6,5 @@ package com.wxl.crawlerdytt.core;
  */
 public class DyttConstants {
 
-    public static final String DEFAULT_CHARSET = "gbk";
 
 }

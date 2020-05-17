@@ -12,12 +12,6 @@ public interface DyttProcessor {
     void process(Page page);
 
     boolean match(Page page);
-
-    default void puthObject(Page page, Object obj) {
-        if (obj != null) {
-            page.putField(obj.getClass().getName(), obj);
-        }
-    }
 }
 
 

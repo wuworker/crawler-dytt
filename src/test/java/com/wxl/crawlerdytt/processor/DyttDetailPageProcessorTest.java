@@ -31,10 +31,10 @@ public class DyttDetailPageProcessorTest {
         page.setUrl(new PlainText("https://www.dytt8.net/html/gndy/dyzz/20200506/59996.html"));
         page.setDownloadSuccess(true);
         page.setCharset("utf-8");
-        page.setRawText(new String(bytes,"utf-8"));
+        page.setRawText(new String(bytes, "utf-8"));
         page.setStatusCode(200);
 
-        DyttDetailPageProcessor processor = new DyttDetailPageProcessor();
+        DyttDetailPageProcessor processor = new DyttDetailPageProcessor((p, url) -> 10, url -> true);
 
         processor.process(page);
 
@@ -42,7 +42,6 @@ public class DyttDetailPageProcessorTest {
         DyttDetail detail = resultItems.get(DyttDetail.class.getName());
         System.out.println(detail);
     }
-
 
 
 }

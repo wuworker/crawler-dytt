@@ -80,14 +80,8 @@ public class DyttDetail implements Serializable {
     // 下载地址
     private List<String> downLinks;
 
-    // 文件大小
-    private String fileSize;
-
-    // 文件格式
-    private String fileFormat;
-
-    // 视频尺寸
-    private String videoSize;
+    // 文件大小 gb
+    private Double fileSize;
 
 
     @Override

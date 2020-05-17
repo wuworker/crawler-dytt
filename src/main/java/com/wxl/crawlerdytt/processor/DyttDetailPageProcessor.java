@@ -4,7 +4,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.wxl.crawlerdytt.core.DyttDetail;
 import com.wxl.crawlerdytt.core.DyttReleaseDate;
-import com.wxl.crawlerdytt.priority.PriorityUrlCalculator;
+import com.wxl.crawlerdytt.urlhandler.PriorityUrlCalculator;
+import com.wxl.crawlerdytt.urlhandler.UrlFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
 @Slf4j
 @Order(0)
 @Component
-public class DyttDetailPageProcessor implements DyttProcessor {
+public class DyttDetailPageProcessor extends AbstractDyttProcessor {
 
     private static final String PATH_PATTERN = "https://www.dytt8.net/html/gndy/\\w+/(\\d+)/(\\d+)\\.html";
 
@@ -49,17 +50,21 @@ public class DyttDetailPageProcessor implements DyttProcessor {
     private static final String P_AWARDS = "◎获奖情况";
     private static final String P_DESC = "◎简　　介";
     private static final String P_FILE_SIZE = "◎文件大小　";
-    private static final String P_FILE_FORMAT = "◎文件格式　";
-    private static final String P_VIDEO_SIZE = "◎视频尺寸　";
 
     // 评分
     private Pattern scorePattern = Pattern.compile("([0-9.]+)/10 from ([0-9]+) users");
+    // 文件大小
+    private Pattern sizePattern = Pattern.compile("([0-9.]+).+");
     // 发布日期
     private Pattern releaseDatePattern = Pattern.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})\\((.+)\\)");
     private List<String> linkStarts = Lists.newArrayList("ftp", "magnet");
 
+
     @Autowired
-    private PriorityUrlCalculator priorityCalculator;
+    public DyttDetailPageProcessor(PriorityUrlCalculator priorityCalculator,
+                                   UrlFilter urlFilter) {
+        super(priorityCalculator, urlFilter);
+    }
 
     @Override
     public void process(Page page) {
@@ -115,8 +120,6 @@ public class DyttDetailPageProcessor implements DyttProcessor {
         setTags(dyttDetail, nodes);
         setDesc(dyttDetail, nodes);
         setFileSize(dyttDetail, nodes);
-        setFileFormat(dyttDetail, nodes);
-        setVideoSize(dyttDetail, nodes);
 
         // 链接
         List<String> links = root.css("a[href]", "href").all();
@@ -125,12 +128,12 @@ public class DyttDetailPageProcessor implements DyttProcessor {
             if (isDownloadLink(link)) {
                 downloads.add(link);
             } else {
-                priorityCalculator.calculateAndAdd(page, link);
+                addLink(page, link);
             }
         }
         dyttDetail.setDownLinks(downloads);
 
-        puthObject(page, dyttDetail);
+        putObject(page, dyttDetail);
     }
 
 
@@ -266,17 +269,12 @@ public class DyttDetailPageProcessor implements DyttProcessor {
 
     private void setFileSize(DyttDetail dyttDetail, List<String> nodes) {
         String size = findBrValue(nodes, P_FILE_SIZE);
-        dyttDetail.setFileSize(wordFilter(size));
-    }
-
-    private void setFileFormat(DyttDetail dyttDetail, List<String> nodes) {
-        String format = findBrValue(nodes, P_FILE_FORMAT);
-        dyttDetail.setFileFormat(wordFilter(format));
-    }
-
-    private void setVideoSize(DyttDetail dyttDetail, List<String> nodes) {
-        String size = findBrValue(nodes, P_VIDEO_SIZE);
-        dyttDetail.setVideoSize(wordFilter(size));
+        Matcher matcher = sizePattern.matcher(size);
+        if (matcher.find()) {
+            String group = matcher.group(1);
+            double s = Double.parseDouble(group);
+            dyttDetail.setFileSize(s);
+        }
     }
 
     private String findBrValue(List<String> nodes, String key) {

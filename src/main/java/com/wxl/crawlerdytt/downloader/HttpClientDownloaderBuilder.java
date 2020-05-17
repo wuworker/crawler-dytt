@@ -1,6 +1,5 @@
-package com.wxl.crawlerdytt.utils;
+package com.wxl.crawlerdytt.downloader;
 
-import com.wxl.crawlerdytt.core.DyttConstants;
 import org.springframework.util.Assert;
 import us.codecraft.webmagic.downloader.HttpUriRequestConverter;
 import us.codecraft.webmagic.proxy.ProxyProvider;
@@ -48,12 +47,10 @@ public class HttpClientDownloaderBuilder {
     }
 
     public HttpClientDownloader build() {
-        Assert.notNull(httpClientGenerator,"http client generator can not null");
+        Assert.notNull(httpClientGenerator, "http client generator can not null");
+        Assert.notNull(defaultCharset, "default charset can not null");
         if (requestConverter == null) {
             requestConverter = new HttpUriRequestConverter();
-        }
-        if (defaultCharset == null) {
-            defaultCharset = DyttConstants.DEFAULT_CHARSET;
         }
 
         return new HttpClientDownloader(httpClientGenerator,
