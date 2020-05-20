@@ -2,11 +2,16 @@ package com.wxl.crawlerdytt.processor;
 
 import com.wxl.crawlerdytt.urlhandler.PriorityUrlCalculator;
 import com.wxl.crawlerdytt.urlhandler.UrlFilter;
+import org.apache.commons.lang3.StringUtils;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
+import us.codecraft.webmagic.utils.UrlUtils;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
+import static com.wxl.crawlerdytt.core.DyttConstants.REQUEST_ATTR_DEPTH;
 
 /**
  * Create by wuxingle on 2020/5/16
@@ -39,9 +44,7 @@ public abstract class AbstractDyttProcessor implements DyttProcessor {
         if (urlFilter != null) {
             all = urlFilter.filter(all);
         }
-        all.stream().collect(Collectors.groupingBy(url -> priorityCalculator.calculate(page, url)))
-                .forEach((k, v) -> page.addTargetRequests(v, k));
-
+        all.forEach(url -> addExtraLink(page, url));
     }
 
     /**
@@ -49,8 +52,7 @@ public abstract class AbstractDyttProcessor implements DyttProcessor {
      */
     public void addLink(Page page, String url) {
         if (urlFilter == null || urlFilter.filter(url)) {
-            int priority = priorityCalculator.calculate(page, url);
-            page.addTargetRequests(Collections.singletonList(url), priority);
+            addExtraLink(page, url);
         }
     }
 
@@ -61,5 +63,27 @@ public abstract class AbstractDyttProcessor implements DyttProcessor {
         if (obj != null) {
             page.putField(obj.getClass().getName(), obj);
         }
+    }
+
+
+    private void addExtraLink(Page page, String url) {
+        if (StringUtils.isBlank(url) || url.equals("#") || url.startsWith("javascript:")) {
+            return;
+        }
+        Request request = new Request();
+        url = UrlUtils.canonicalizeUrl(url, page.getUrl().toString());
+        request.setUrl(url);
+
+        int priority = priorityCalculator.calculate(page, url);
+        request.setPriority(priority);
+
+        Integer depth = (Integer) page.getRequest().getExtra(REQUEST_ATTR_DEPTH);
+
+        Map<String, Object> extra = new HashMap<>();
+        extra.put(REQUEST_ATTR_DEPTH, depth == null ? 0 : depth + 1);
+
+        request.setExtras(extra);
+
+        page.addTargetRequest(request);
     }
 }

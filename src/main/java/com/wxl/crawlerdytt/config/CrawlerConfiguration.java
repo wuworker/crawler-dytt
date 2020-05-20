@@ -16,9 +16,7 @@ import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.pipeline.Pipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.scheduler.PriorityScheduler;
 import us.codecraft.webmagic.scheduler.Scheduler;
-import us.codecraft.webmagic.scheduler.component.HashSetDuplicateRemover;
 
 import java.util.HashSet;
 import java.util.List;
@@ -76,17 +74,6 @@ public class CrawlerConfiguration {
         return new ThreadPoolExecutor(pool.getCoreSize(), pool.getMaxSize(),
                 pool.getKeepAlive().getSeconds(), TimeUnit.SECONDS, new ArrayBlockingQueue<>(pool.getQueueSize()),
                 threadFactory, new ThreadPoolExecutor.AbortPolicy());
-    }
-
-    /**
-     * 队列管理
-     */
-    @Bean
-    public Scheduler crawlerScheduler() {
-        PriorityScheduler priorityScheduler = new PriorityScheduler();
-        priorityScheduler.setDuplicateRemover(new HashSetDuplicateRemover());
-
-        return priorityScheduler;
     }
 
     /**

@@ -8,19 +8,17 @@ spring:
   elasticsearch:
     rest:
       uris: http://localhost:9200
-
-#  redis:
-#    host: localhost
-#    port: 6379
-#    database: 0
-#    timeout: 5s
-#    lettuce:
-#      pool:
-#        max-active: 8
-#        max-idle: 3
-#        min-idle: 1
-#        max-wait: 5s
-#
+  redis:
+    host: localhost
+    port: 6379
+    database: 1
+    timeout: 5s
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 3
+        min-idle: 1
+        max-wait: 5s
 
 logging:
   level:
@@ -47,6 +45,8 @@ crawler:
     ignore-ssl: true
     keep-alive: 3m
     validate-after-inactivity: 1m
+  scheduler:
+    type: redis
   store:
     es:
       retry-timeout: 5s

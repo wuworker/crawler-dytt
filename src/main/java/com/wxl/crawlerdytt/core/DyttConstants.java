@@ -6,5 +6,8 @@ package com.wxl.crawlerdytt.core;
  */
 public class DyttConstants {
 
-
+    /**
+     * 链接深度
+     */
+    public static final String REQUEST_ATTR_DEPTH = "_depth";
 }
