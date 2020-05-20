@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.selector.Selectable;
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
 @Component
 public class DyttDetailPageProcessor extends AbstractDyttProcessor {
 
-    private static final String PATH_PATTERN = "https://www.dytt8.net/html/gndy/\\w+/(\\d+)/(\\d+)\\.html";
+    private static final String PATH_PATTERN = ".+/html/gndy/\\w+/(\\d+)/(\\d+)\\.html";
 
     private static final String P_CONTENT_START = "◎";
     private static final String P_TRANSLATE_NAME = "◎译　　名　";
@@ -133,7 +134,9 @@ public class DyttDetailPageProcessor extends AbstractDyttProcessor {
         }
         dyttDetail.setDownLinks(downloads);
 
-        putObject(page, dyttDetail);
+        if (!CollectionUtils.isEmpty(dyttDetail.getDownLinks())) {
+            putObject(page, dyttDetail);
+        }
     }
 
 

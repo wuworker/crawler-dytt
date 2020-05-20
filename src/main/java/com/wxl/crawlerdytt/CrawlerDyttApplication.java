@@ -1,9 +1,8 @@
 package com.wxl.crawlerdytt;
 
+import com.wxl.crawlerdytt.utils.DyttUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
-import us.codecraft.webmagic.Spider;
 
 /**
  * Create by wuxingle on 2020/5/10
@@ -13,10 +12,11 @@ import us.codecraft.webmagic.Spider;
 public class CrawlerDyttApplication {
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(CrawlerDyttApplication.class, args);
+        SpringApplication application = new SpringApplication(CrawlerDyttApplication.class);
+        application.addInitializers(DyttUtils::setApplicationContext);
+        application.run(args);
 
-        Spider spider = context.getBean(Spider.class);
-        spider.run();
+        DyttUtils.startCrawler();
     }
 
 }

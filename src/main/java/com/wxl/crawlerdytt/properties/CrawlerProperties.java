@@ -24,6 +24,8 @@ public class CrawlerProperties {
 
     private String charset = "gbk";
 
+    private int updateSize = 1000;
+
     private PoolProperties pool = new PoolProperties();
 
     private SiteProperties site = new SiteProperties();
@@ -42,6 +44,8 @@ public class CrawlerProperties {
         private Integer coreSize = 1;
 
         private Integer maxSize = 1;
+
+        private Integer queueSize = 100;
 
         private Duration keepAlive = Duration.ofMinutes(5);
 

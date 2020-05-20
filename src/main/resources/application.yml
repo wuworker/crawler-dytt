@@ -1,12 +1,10 @@
 spring:
   application:
     name: crawler-dytt
-#  data:
-#    elasticsearch:
-#      cluster-name: elasticsearch_wxl
-#      cluster-nodes: localhost:9300
-#      repositories:
-#        enabled: false
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false
   elasticsearch:
     rest:
       uris: http://localhost:9200
@@ -32,10 +30,12 @@ logging:
 crawler:
   first-url: "https://www.dytt8.net"
   domain: "www.dytt8.net"
+  update-size: 10
   charset: gbk
   pool:
-    core-size: 1
+    core-size: 0
     max-size: 1
+    queue-size: 5
     keep-alive: 5m
   site:
     sleep-time: 1s

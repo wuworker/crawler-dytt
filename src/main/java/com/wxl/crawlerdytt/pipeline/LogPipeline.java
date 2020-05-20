@@ -20,6 +20,6 @@ public class LogPipeline extends DyttPipeline<DyttDetail> {
 
     @Override
     protected void process(DyttDetail dyttDetail, ResultItems resultItems, Task task) {
-        log.info("process result:{}", dyttDetail);
+        log.info("process result:{},{}", dyttDetail.getUrl(), dyttDetail.getTitle());
     }
 }

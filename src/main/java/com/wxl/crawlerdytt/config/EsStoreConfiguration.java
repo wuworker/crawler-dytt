@@ -1,5 +1,6 @@
 package com.wxl.crawlerdytt.config;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.wxl.crawlerdytt.pipeline.EsIndexManager;
 import com.wxl.crawlerdytt.properties.CrawlerProperties;
 import com.wxl.crawlerdytt.properties.EsStoreProperties;
@@ -53,6 +54,11 @@ public class EsStoreConfiguration {
                 })
                 .setHttpClientConfigCallback(httpClientBuilder -> {
                     httpClientBuilder.setMaxConnTotal(maxSize)
+                            .setThreadFactory(new ThreadFactoryBuilder()
+                                    .setDaemon(true)
+                                    .setNameFormat("es-pool-%s")
+                                    .build()
+                            )
                             .setMaxConnPerRoute(maxSize);
                     return httpClientBuilder;
                 })

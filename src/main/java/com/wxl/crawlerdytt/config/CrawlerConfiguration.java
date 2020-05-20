@@ -74,7 +74,7 @@ public class CrawlerConfiguration {
                 .build();
 
         return new ThreadPoolExecutor(pool.getCoreSize(), pool.getMaxSize(),
-                pool.getKeepAlive().getSeconds(), TimeUnit.SECONDS, new SynchronousQueue<>(),
+                pool.getKeepAlive().getSeconds(), TimeUnit.SECONDS, new ArrayBlockingQueue<>(pool.getQueueSize()),
                 threadFactory, new ThreadPoolExecutor.AbortPolicy());
     }
 
