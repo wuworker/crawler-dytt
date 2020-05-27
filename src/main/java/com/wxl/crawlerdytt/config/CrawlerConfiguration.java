@@ -52,7 +52,7 @@ public class CrawlerConfiguration {
                 .addUrl(firstUrl)
                 .setExecutorService(executorService)
                 .thread(threads)
-                .setExitWhenComplete(true)
+                .setExitWhenComplete(false)
                 .setScheduler(scheduler)
                 .setDownloader(downloader);
         pipelines.orderedStream().forEach(spider::addPipeline);
