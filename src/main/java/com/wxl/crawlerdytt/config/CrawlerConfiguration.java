@@ -1,6 +1,9 @@
 package com.wxl.crawlerdytt.config;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.wxl.crawlerdytt.core.Crawler;
+import com.wxl.crawlerdytt.core.Crawlers;
+import com.wxl.crawlerdytt.core.ExecutorThreadPool;
+import com.wxl.crawlerdytt.core.ThreadPool;
 import com.wxl.crawlerdytt.processor.DyttProcessor;
 import com.wxl.crawlerdytt.processor.ProcessorDispatcher;
 import com.wxl.crawlerdytt.properties.CrawlerProperties;
@@ -10,9 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.Site;
-import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.SpiderListener;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.pipeline.Pipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
@@ -20,7 +24,6 @@ import us.codecraft.webmagic.scheduler.Scheduler;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -39,50 +42,55 @@ public class CrawlerConfiguration {
         this.crawlerProperties = crawlerProperties;
     }
 
-    @Bean
-    public Spider spider(Downloader downloader,
-                         ObjectProvider<Pipeline> pipelines,
-                         ExecutorService executorService,
-                         PageProcessor pageProcessor,
-                         Scheduler scheduler) {
+    /**
+     * 爬虫管理
+     */
+    @Bean(destroyMethod = "close")
+    public Crawler crawler(PageProcessor pageProcessor,
+                           Downloader downloader,
+                           ObjectProvider<Pipeline> pipelines,
+                           ThreadPool threadPool,
+                           Scheduler scheduler,
+                           ObjectProvider<SpiderListener> listeners) {
         String firstUrl = crawlerProperties.getFirstUrl();
-        Integer threads = crawlerProperties.getPool().getMaxSize();
 
-        Spider spider = Spider.create(pageProcessor)
-                .addUrl(firstUrl)
-                .setExecutorService(executorService)
-                .thread(threads)
-                .setExitWhenComplete(false)
+
+        return Crawlers.create()
+                .setPageProcessor(pageProcessor)
+                .setDownloader(downloader)
+                .addPipeline(pipelines.orderedStream().collect(Collectors.toList()))
                 .setScheduler(scheduler)
-                .setDownloader(downloader);
-        pipelines.orderedStream().forEach(spider::addPipeline);
-        return spider;
+                .setThreadPool(threadPool)
+                .startUrls(firstUrl)
+                .addSpiderLiseners(listeners.orderedStream().collect(Collectors.toList()))
+                .setExitWhenComplete(true)
+                .build();
     }
 
     /**
      * 线程池
      */
     @Bean
-    public ExecutorService crawlerExecutorService() {
-        CrawlerProperties.PoolProperties pool = crawlerProperties.getPool();
-
-        ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setDaemon(true)
-                .setNameFormat(pool.getThreadNameFormat())
-                .build();
-
-        return new ThreadPoolExecutor(pool.getCoreSize(), pool.getMaxSize(),
-                pool.getKeepAlive().getSeconds(), TimeUnit.SECONDS, new ArrayBlockingQueue<>(pool.getQueueSize()),
-                threadFactory, new ThreadPoolExecutor.AbortPolicy());
+    public ThreadPool crawlerExecutorService() {
+        return new ExecutorThreadPool(crawlerProperties.getMaxThread());
     }
 
     /**
      * 页面处理
      */
     @Bean
-    public ProcessorDispatcher processorDispatcher(ObjectProvider<DyttProcessor> processors) {
-        CrawlerProperties.SiteProperties siteProp = crawlerProperties.getSite();
+    public ProcessorDispatcher processorDispatcher(Site site, ObjectProvider<DyttProcessor> processors) {
+        List<DyttProcessor> collect = processors.orderedStream().collect(Collectors.toList());
+        return new ProcessorDispatcher(site, collect);
+    }
 
+    /**
+     * site配置
+     */
+    @Primary
+    @Bean("dyttPrimarySite")
+    public Site dyttPrimarySite() {
+        CrawlerProperties.SiteProperties siteProp = crawlerProperties.getSite();
         Site site = Site.me()
                 .setCharset(crawlerProperties.getCharset())
                 .setUserAgent(siteProp.getUserAgent())
@@ -98,9 +106,7 @@ public class CrawlerConfiguration {
         if (!CollectionUtils.isEmpty(siteProp.getHeaders())) {
             siteProp.getHeaders().forEach(site::addHeader);
         }
-
-        List<DyttProcessor> collect = processors.orderedStream().collect(Collectors.toList());
-        return new ProcessorDispatcher(site, collect);
+        return site;
     }
 
 }

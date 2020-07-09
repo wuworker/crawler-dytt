@@ -33,7 +33,7 @@ public class SslContextUtils {
         };
 
         try {
-            SSLContext sc = SSLContext.getInstance("TLS");
+            SSLContext sc = SSLContext.getInstance("SSLv3");
             sc.init(null, new TrustManager[]{trustManager}, null);
             return sc;
         } catch (KeyManagementException | NoSuchAlgorithmException e) {

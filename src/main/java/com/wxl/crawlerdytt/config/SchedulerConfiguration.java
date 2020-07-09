@@ -16,7 +16,9 @@ import us.codecraft.webmagic.scheduler.component.HashSetDuplicateRemover;
 @Configuration
 public class SchedulerConfiguration {
 
-
+    /**
+     * 本地队列
+     */
     @Bean
     @ConditionalOnProperty(prefix = "crawler.scheduler", name = "type", havingValue = "local")
     public Scheduler localScheduler() {
@@ -27,6 +29,9 @@ public class SchedulerConfiguration {
     }
 
 
+    /**
+     * redis队列
+     */
     @Bean
     @ConditionalOnProperty(prefix = "crawler.scheduler", name = "type", havingValue = "redis")
     public Scheduler redisScheduler(RedisConnectionFactory redisConnectionFactory) {

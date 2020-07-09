@@ -2,11 +2,8 @@ package com.wxl.crawlerdytt.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Create by wuxingle on 2020/5/17
@@ -20,8 +17,7 @@ public class EsStoreProperties {
 
     private Duration retryTimeout = Duration.ofSeconds(5);
 
-    @NestedConfigurationProperty
-    private Map<String, IndexProperties> indices = new HashMap<>();
+    private DyttDetailIndexProperties detail = new DyttDetailIndexProperties();
 
     @Data
     public static class RequestProperties {
@@ -36,8 +32,9 @@ public class EsStoreProperties {
     }
 
     @Data
-    public static class IndexProperties {
-        private String index;
+    public static class DyttDetailIndexProperties {
+
+        private String index = "dytt";
 
         private String type = "_doc";
     }

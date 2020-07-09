@@ -16,7 +16,7 @@ spring:
     lettuce:
       pool:
         max-active: 8
-        max-idle: 3
+        max-idle: 4
         min-idle: 1
         max-wait: 5s
 
@@ -28,16 +28,11 @@ logging:
 crawler:
   first-url: "https://www.dytt8.net"
   domain: "www.dytt8.net"
-  update-size: 10
   charset: gbk
-  pool:
-    core-size: 0
-    max-size: 1
-    queue-size: 5
-    keep-alive: 5m
+  max-thread: 1
   site:
     sleep-time: 1s
-    retry-times: 1
+    retry-times: 2
     retry-sleep-time: 1s
     timeout: 10s
     disable-cookie: true
@@ -45,6 +40,7 @@ crawler:
     ignore-ssl: true
     keep-alive: 3m
     validate-after-inactivity: 1m
+    use-security: false
   scheduler:
     type: redis
   store:
@@ -55,7 +51,10 @@ crawler:
         socket-timeout: 10s
         connect-request-timeout: 5s
         compress-enabled: true
-      indices:
-        dytt-detail:
-          index: dytt
-          type: _doc
+      detail:
+        index: dytt
+        type: _doc
+
+server:
+  port: 8080
+

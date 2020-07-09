@@ -6,8 +6,10 @@ package com.wxl.crawlerdytt.web.dto;
  */
 public enum ResultCode {
 
-    OK(200, "ok")
-    ;
+    OK(200, "ok"),
+
+    SCHEDULE_IS_NOT_MONITOR(305, "无法获取消费进度"),
+    SCHEDULE_CANNOT_RESET(306, "无法重置消费进度");
 
     private int code;
 

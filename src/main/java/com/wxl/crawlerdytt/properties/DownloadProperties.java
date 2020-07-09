@@ -13,13 +13,24 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "crawler.download")
 public class DownloadProperties {
 
+    /**
+     * 忽略https证书校验
+     */
     private boolean ignoreSsl = true;
+
+    /**
+     * 使用安全的https协议和加密套件
+     */
+    private boolean useSecurity = false;
 
     /**
      * http连接的keepAlive
      */
     private Duration keepAlive = Duration.ofMinutes(3);
 
+    /**
+     * 空闲n时间后需要校验
+     */
     private Duration validateAfterInactivity = Duration.ofMinutes(1);
 
 }

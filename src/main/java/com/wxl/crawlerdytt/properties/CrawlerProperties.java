@@ -24,9 +24,7 @@ public class CrawlerProperties {
 
     private String charset = "gbk";
 
-    private int updateSize = 1000;
-
-    private PoolProperties pool = new PoolProperties();
+    private int maxThread = 10;
 
     private SiteProperties site = new SiteProperties();
 
@@ -36,20 +34,6 @@ public class CrawlerProperties {
             domain = UrlUtils.getDomain(firstUrl);
         }
         return domain;
-    }
-
-    @Data
-    public static class PoolProperties {
-
-        private Integer coreSize = 1;
-
-        private Integer maxSize = 1;
-
-        private Integer queueSize = 100;
-
-        private Duration keepAlive = Duration.ofMinutes(5);
-
-        private String threadNameFormat = "dytt-pool-%s";
     }
 
     @Data

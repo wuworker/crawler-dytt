@@ -45,7 +45,7 @@ public class DyttPriorityUrlCalculator implements PriorityUrlCalculator {
         int depth = depthWeight * depth(page);
         int date = dateWeight * date(url);
 
-        log.debug("url priority, correlation:{},depth:{},date:{}", correlation, depth, date);
+        log.trace("url priority, correlation:{},depth:{},date:{}", correlation, depth, date);
         return correlation + depth + date;
     }
 

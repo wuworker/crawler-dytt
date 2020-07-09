@@ -2,6 +2,7 @@ package com.wxl.crawlerdytt.pipeline;
 
 import com.alibaba.fastjson.JSON;
 import com.wxl.crawlerdytt.core.DyttDetail;
+import com.wxl.crawlerdytt.properties.EsStoreProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -10,6 +11,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.ResultItems;
@@ -25,29 +27,29 @@ import java.io.IOException;
 @Slf4j
 @Order(0)
 @Component
+@EnableConfigurationProperties(EsStoreProperties.class)
 public class DyttEsStorePipeline extends DyttPipeline<DyttDetail> implements Closeable {
-
-    public static final String INDEX_CATEGORY = "dytt-detail";
 
     private RestHighLevelClient client;
 
-    private EsIndexManager indexManager;
+    private String index;
+
+    private String type;
 
     @Autowired
     public DyttEsStorePipeline(RestHighLevelClient client,
-                               EsIndexManager indexManager) {
+                               EsStoreProperties esStoreProperties) {
         super(DyttDetail.class);
-        this.client = client;
-        this.indexManager = indexManager;
+        EsStoreProperties.DyttDetailIndexProperties detail = esStoreProperties.getDetail();
 
-        // check
-        indexManager.getIndex(INDEX_CATEGORY);
+        this.client = client;
+        this.index = detail.getIndex();
+        this.type = detail.getType();
     }
 
     @Override
     protected void process(DyttDetail dyttDetail, ResultItems resultItems, Task task) {
-        UpdateRequest request = indexManager.updateRequest(INDEX_CATEGORY);
-        request.id(dyttDetail.getId());
+        UpdateRequest request = getUpdateRequest(dyttDetail.getId());
 
         String doc = JSON.toJSONString(dyttDetail);
         request.doc(doc, XContentType.JSON);
@@ -69,5 +71,9 @@ public class DyttEsStorePipeline extends DyttPipeline<DyttDetail> implements Clo
     @Override
     public void close() throws IOException {
         client.close();
+    }
+
+    private UpdateRequest getUpdateRequest(String id) {
+        return new UpdateRequest(index, type, id);
     }
 }

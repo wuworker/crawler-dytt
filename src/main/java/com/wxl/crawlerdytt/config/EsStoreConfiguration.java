@@ -1,7 +1,7 @@
 package com.wxl.crawlerdytt.config;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.wxl.crawlerdytt.pipeline.EsIndexManager;
+import com.wxl.crawlerdytt.pipeline.DyttEsStorePipeline;
 import com.wxl.crawlerdytt.properties.CrawlerProperties;
 import com.wxl.crawlerdytt.properties.EsStoreProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class EsStoreConfiguration {
 
     @Bean
     public RestClientBuilderCustomizer clientBuilderCustomizer() {
-        Integer maxSize = crawlerProperties.getPool().getMaxSize();
+        Integer maxSize = crawlerProperties.getMaxThread();
 
         EsStoreProperties.RequestProperties request = esStoreProperties.getRequest();
         int connectTimeout = (int) request.getConnectTimeout().toMillis();
@@ -72,14 +72,5 @@ public class EsStoreConfiguration {
                 .setMaxRetryTimeoutMillis(retryTimeout);
 
     }
-
-    @Bean
-    public EsIndexManager esIndexManager() {
-        EsIndexManager esIndexManager = new EsIndexManager();
-        Map<String, EsStoreProperties.IndexProperties> indices = esStoreProperties.getIndices();
-        indices.forEach((k, v) -> esIndexManager.putIndex(k, v.getIndex(), v.getType()));
-        return esIndexManager;
-    }
-
 
 }
