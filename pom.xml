@@ -9,13 +9,13 @@
     </parent>
     <groupId>com.wxl.crawler</groupId>
     <artifactId>crawler-dytt</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>crawler-dytt</name>
     <description>Simple Crawler For Dytt</description>
 
     <scm>
         <developerConnection>scm:git:git@github.com:wuworker/crawler-dytt.git</developerConnection>
-        <tag>crawler-dytt-0.0.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
