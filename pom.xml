@@ -14,6 +14,11 @@
     <name>crawler-dytt</name>
     <description>Simple Crawler For Dytt</description>
 
+    <scm>
+        <developerConnection>scm:git:git@github.com:wuworker/crawler-dytt.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <java.version>1.8</java.version>
         <guava.version>28.0-jre</guava.version>
@@ -112,6 +117,15 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <goals>install</goals>
                 </configuration>
             </plugin>
         </plugins>
