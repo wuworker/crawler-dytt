@@ -9,7 +9,13 @@ public enum ResultCode {
     OK(200, "ok"),
 
     SCHEDULE_IS_NOT_MONITOR(305, "无法获取消费进度"),
-    SCHEDULE_CANNOT_RESET(306, "无法重置消费进度");
+    SCHEDULE_CANNOT_RESET(306, "无法重置消费进度"),
+
+
+    REQUEST_BAD(400, "请求非法"),
+
+
+    SERVER_ERROR(500, "服务器内部错误");
 
     private int code;
 

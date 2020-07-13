@@ -1,5 +1,6 @@
 package com.wxl.crawlerdytt.processor;
 
+import com.wxl.crawlerdytt.core.DyttConstants;
 import com.wxl.crawlerdytt.urlhandler.PriorityUrlCalculator;
 import com.wxl.crawlerdytt.urlhandler.UrlFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -10,8 +11,6 @@ import us.codecraft.webmagic.utils.UrlUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.wxl.crawlerdytt.core.DyttConstants.REQUEST_ATTR_DEPTH;
 
 /**
  * Create by wuxingle on 2020/5/16
@@ -77,10 +76,10 @@ public abstract class AbstractDyttProcessor implements DyttProcessor {
         int priority = priorityCalculator.calculate(page, url);
         request.setPriority(priority);
 
-        Integer depth = (Integer) page.getRequest().getExtra(REQUEST_ATTR_DEPTH);
+        Integer depth = (Integer) page.getRequest().getExtra(DyttConstants.RequestAttr.DEPTH);
 
         Map<String, Object> extra = new HashMap<>();
-        extra.put(REQUEST_ATTR_DEPTH, depth == null ? 0 : depth + 1);
+        extra.put(DyttConstants.RequestAttr.DEPTH, depth == null ? 0 : depth + 1);
 
         request.setExtras(extra);
 

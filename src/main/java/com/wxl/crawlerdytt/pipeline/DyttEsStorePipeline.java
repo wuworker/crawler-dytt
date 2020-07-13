@@ -2,7 +2,6 @@ package com.wxl.crawlerdytt.pipeline;
 
 import com.alibaba.fastjson.JSON;
 import com.wxl.crawlerdytt.core.DyttDetail;
-import com.wxl.crawlerdytt.properties.EsStoreProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -11,7 +10,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.ResultItems;
@@ -20,6 +18,9 @@ import us.codecraft.webmagic.Task;
 import java.io.Closeable;
 import java.io.IOException;
 
+import static com.wxl.crawlerdytt.core.DyttConstants.Elastic.DYTT_INDEX;
+import static com.wxl.crawlerdytt.core.DyttConstants.Elastic.DYTT_TYPE;
+
 /**
  * Create by wuxingle on 2020/5/10
  * 电影存储到es
@@ -27,24 +28,15 @@ import java.io.IOException;
 @Slf4j
 @Order(0)
 @Component
-@EnableConfigurationProperties(EsStoreProperties.class)
 public class DyttEsStorePipeline extends DyttPipeline<DyttDetail> implements Closeable {
 
     private RestHighLevelClient client;
 
-    private String index;
-
-    private String type;
-
     @Autowired
-    public DyttEsStorePipeline(RestHighLevelClient client,
-                               EsStoreProperties esStoreProperties) {
+    public DyttEsStorePipeline(RestHighLevelClient client) {
         super(DyttDetail.class);
-        EsStoreProperties.DyttDetailIndexProperties detail = esStoreProperties.getDetail();
 
         this.client = client;
-        this.index = detail.getIndex();
-        this.type = detail.getType();
     }
 
     @Override
@@ -74,6 +66,6 @@ public class DyttEsStorePipeline extends DyttPipeline<DyttDetail> implements Clo
     }
 
     private UpdateRequest getUpdateRequest(String id) {
-        return new UpdateRequest(index, type, id);
+        return new UpdateRequest(DYTT_INDEX, DYTT_TYPE, id);
     }
 }

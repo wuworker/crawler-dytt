@@ -1,6 +1,9 @@
 package com.wxl.crawlerdytt.web.dto;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * Create by wuxingle on 2020/5/27
@@ -40,6 +43,10 @@ public class ResultDTO<T> {
 
     public static <T> ResultDTO<T> create(ResultCode code, T data) {
         return new ResultDTO<>(code.code(), code.message(), data);
+    }
+
+    public static Map<String, Object> failMap(ResultCode resultCode) {
+        return ImmutableMap.of("code", resultCode.code(), "message", resultCode.message());
     }
 }
 

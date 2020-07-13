@@ -1,7 +1,6 @@
 package com.wxl.crawlerdytt.config;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.wxl.crawlerdytt.pipeline.DyttEsStorePipeline;
 import com.wxl.crawlerdytt.properties.CrawlerProperties;
 import com.wxl.crawlerdytt.properties.EsStoreProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +10,6 @@ import org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuild
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 /**
  * Create by wuxingle on 2020/5/10

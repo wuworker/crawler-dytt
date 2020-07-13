@@ -17,8 +17,6 @@ public class EsStoreProperties {
 
     private Duration retryTimeout = Duration.ofSeconds(5);
 
-    private DyttDetailIndexProperties detail = new DyttDetailIndexProperties();
-
     @Data
     public static class RequestProperties {
 
@@ -29,13 +27,5 @@ public class EsStoreProperties {
         private Duration connectRequestTimeout = Duration.ofSeconds(5);
 
         private boolean compressEnabled = true;
-    }
-
-    @Data
-    public static class DyttDetailIndexProperties {
-
-        private String index = "dytt";
-
-        private String type = "_doc";
     }
 }

@@ -1,6 +1,8 @@
 spring:
   application:
     name: crawler-dytt
+  resources:
+    static-locations: file:static/
   data:
     elasticsearch:
       repositories:
@@ -19,6 +21,19 @@ spring:
         max-idle: 4
         min-idle: 1
         max-wait: 5s
+
+
+server:
+  port: 8080
+  error:
+    whitelabel:
+      enabled: false
+  tomcat:
+    connection-timeout: 5s
+    max-threads: 100
+    max-connections: 1000
+  servlet:
+    application-display-name: dytt-crawler-admin
 
 logging:
   level:
@@ -51,10 +66,4 @@ crawler:
         socket-timeout: 10s
         connect-request-timeout: 5s
         compress-enabled: true
-      detail:
-        index: dytt
-        type: _doc
-
-server:
-  port: 8080
 

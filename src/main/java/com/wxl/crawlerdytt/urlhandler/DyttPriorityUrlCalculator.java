@@ -63,7 +63,7 @@ public class DyttPriorityUrlCalculator implements PriorityUrlCalculator {
      * 深度计算
      */
     protected int depth(Page page) {
-        Integer depth = (Integer) page.getRequest().getExtra(DyttConstants.REQUEST_ATTR_DEPTH);
+        Integer depth = (Integer) page.getRequest().getExtra(DyttConstants.RequestAttr.DEPTH);
         if (depth == null) {
             return 100;
         } else if (depth < 10) {
