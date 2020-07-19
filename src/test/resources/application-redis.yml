@@ -53,7 +53,7 @@ crawler:
     sleep-time: 5s
     retry-times: 2
     retry-sleep-time: 1s
-    timeout: 20s
+    timeout: 10s
     disable-cookie: true
   download:
     ignore-ssl: true

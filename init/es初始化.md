@@ -160,6 +160,9 @@ PUT /dytt
         },
         "year": {
           "type": "integer"
+        },
+        "updateTime": {
+          "type": "date"
         }
       }
     }

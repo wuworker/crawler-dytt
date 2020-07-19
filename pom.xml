@@ -8,7 +8,7 @@
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.wxl.crawler</groupId>
-    <artifactId>crawler-dytt</artifactId>
+    <artifactId>dytt-crawler</artifactId>
     <version>0.0.2-SNAPSHOT</version>
     <name>crawler-dytt</name>
     <description>Simple Crawler For Dytt</description>
@@ -23,7 +23,6 @@
         <guava.version>28.0-jre</guava.version>
         <jsoup.version>1.10.2</jsoup.version>
         <webmagic.version>0.7.3</webmagic.version>
-        <fastjson.version>1.2.60</fastjson.version>
     </properties>
 
     <dependencies>
@@ -84,13 +83,6 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
-        </dependency>
-
-        <!-- json -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
         </dependency>
 
         <dependency>
