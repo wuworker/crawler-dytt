@@ -1,6 +1,7 @@
 package com.wxl.dyttcrawler.core;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.wxl.dyttcrawler.scheduler.BatchScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -15,7 +16,6 @@ import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.pipeline.Pipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.scheduler.Scheduler;
-import us.codecraft.webmagic.utils.UrlUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -192,8 +192,8 @@ public class Crawler implements Closeable, Task {
             }
             if (stat.compareAndSet(statNow, Status.RUNNING)) {
                 // add first request
-                for (Request startRequest : startRequests) {
-                    addRequest(startRequest);
+                if (CollectionUtils.isNotEmpty(startRequests)) {
+                    addRequest(startRequests);
                 }
                 break;
             }
@@ -357,9 +357,7 @@ public class Crawler implements Closeable, Task {
         if (site.getAcceptStatCode().contains(page.getStatusCode())) {
             pageProcessor.process(page);
             if (CollectionUtils.isNotEmpty(page.getTargetRequests())) {
-                for (Request req : page.getTargetRequests()) {
-                    addRequest(req);
-                }
+                addRequest(page.getTargetRequests());
             }
             if (!page.getResultItems().isSkip()) {
                 for (Pipeline pipeline : pipelines) {
@@ -410,24 +408,39 @@ public class Crawler implements Closeable, Task {
      * 请求放队列
      */
     private void addRequest(Request request) {
-        if (site.getDomain() == null && request != null && request.getUrl() != null) {
-            site.setDomain(UrlUtils.getDomain(request.getUrl()));
-        }
         scheduler.push(request, this);
     }
 
+    private void addRequest(List<Request> requests) {
+        if (scheduler instanceof BatchScheduler) {
+            ((BatchScheduler) scheduler).push(requests, this);
+        } else {
+            for (Request request : requests) {
+                addRequest(request);
+            }
+        }
+    }
+
     private void notifyError(Request request) {
-        if (CollectionUtils.isNotEmpty(crawlerListeners)) {
+        if (!CollectionUtils.isEmpty(crawlerListeners)) {
             for (CrawlerListener crawlerListener : crawlerListeners) {
-                crawlerListener.onError(request, this);
+                try {
+                    crawlerListener.onError(request, this);
+                } catch (Exception e) {
+                    log.error("crawler on error process error:{}", request, e);
+                }
             }
         }
     }
 
     private void notifySuccess(Request request) {
-        if (CollectionUtils.isNotEmpty(crawlerListeners)) {
+        if (!CollectionUtils.isEmpty(crawlerListeners)) {
             for (CrawlerListener crawlerListener : crawlerListeners) {
-                crawlerListener.onSuccess(request, this);
+                try {
+                    crawlerListener.onSuccess(request, this);
+                } catch (Exception e) {
+                    log.error("crawler on success process error:{}", request, e);
+                }
             }
         }
     }

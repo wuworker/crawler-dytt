@@ -5,6 +5,8 @@ import com.wxl.dyttcrawler.processor.DyttProcessor;
 import com.wxl.dyttcrawler.processor.ProcessorDispatcher;
 import com.wxl.dyttcrawler.properties.CrawlerProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -12,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
-import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.pipeline.Pipeline;
@@ -94,6 +95,7 @@ public class CrawlerConfiguration {
     public Site dyttPrimarySite() {
         CrawlerProperties.SiteProperties siteProp = crawlerProperties.getSite();
         Site site = Site.me()
+                .setDomain("dytt")
                 .setCharset(crawlerProperties.getCharset())
                 .setUserAgent(siteProp.getUserAgent())
                 .setSleepTime((int) siteProp.getSleepTime().toMillis())
@@ -102,10 +104,10 @@ public class CrawlerConfiguration {
                 .setTimeOut((int) siteProp.getTimeout().toMillis())
                 .setDisableCookieManagement(siteProp.isDisableCookie());
 
-        if (!CollectionUtils.isEmpty(siteProp.getAcceptStatusCode())) {
+        if (CollectionUtils.isNotEmpty(siteProp.getAcceptStatusCode())) {
             site.setAcceptStatCode(new HashSet<>(siteProp.getAcceptStatusCode()));
         }
-        if (!CollectionUtils.isEmpty(siteProp.getHeaders())) {
+        if (MapUtils.isNotEmpty(siteProp.getHeaders())) {
             siteProp.getHeaders().forEach(site::addHeader);
         }
         return site;

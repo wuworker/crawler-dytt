@@ -7,9 +7,9 @@ import com.wxl.dyttcrawler.web.dto.crawler.CrawlerProgress;
 import com.wxl.dyttcrawler.web.dto.crawler.ManualUrl;
 import com.wxl.dyttcrawler.web.service.DyttCrawlerService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import static com.wxl.dyttcrawler.web.dto.ResultCode.BAD_PARAMS;
@@ -33,7 +33,7 @@ public class DyttCrawlerController {
      */
     @PostMapping(value = "/manualUrl")
     public ResultDTO<Boolean> manualInvokeUrl(@RequestBody ManualUrl manualUrl) {
-        if (!StringUtils.hasText(manualUrl.getUrl())) {
+        if (StringUtils.isBlank(manualUrl.getUrl())) {
             return ResultDTO.fail(BAD_PARAMS);
         }
         dyttCrawlerService.manualInvokeUrl(manualUrl.getUrl());

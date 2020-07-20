@@ -3,7 +3,7 @@ package com.wxl.dyttcrawler.processor;
 import com.wxl.dyttcrawler.core.DyttConstants;
 import com.wxl.dyttcrawler.urlhandler.PriorityUrlCalculator;
 import com.wxl.dyttcrawler.urlhandler.UrlFilter;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.utils.UrlUtils;
@@ -72,11 +72,11 @@ public abstract class AbstractDyttProcessor implements DyttProcessor {
      * @return 绝对地址
      */
     private URL canonicalizeUrl(Page page, String url) {
-        if ("#".equals(url) || !StringUtils.hasText(url)) {
+        if ("#".equals(url) || StringUtils.isBlank(url)) {
             return null;
         }
         url = UrlUtils.canonicalizeUrl(url, page.getUrl().toString());
-        if (StringUtils.hasText(url)) {
+        if (StringUtils.isNotBlank(url)) {
             try {
                 return new URL(url);
             } catch (MalformedURLException e) {

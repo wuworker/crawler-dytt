@@ -1,11 +1,13 @@
 package com.wxl.dyttcrawler.config;
 
+import com.wxl.dyttcrawler.core.CrawlerListener;
 import com.wxl.dyttcrawler.downloader.HttpClientDownloader;
 import com.wxl.dyttcrawler.downloader.HttpClientDownloaderBuilder;
 import com.wxl.dyttcrawler.downloader.HttpClientGenerator;
 import com.wxl.dyttcrawler.properties.CrawlerProperties;
 import com.wxl.dyttcrawler.properties.DownloadProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -15,11 +17,14 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import us.codecraft.webmagic.downloader.HttpUriRequestConverter;
+import us.codecraft.webmagic.proxy.ProxyProvider;
+import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -29,6 +34,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Create by wuxingle on 2020/5/2
@@ -54,14 +60,22 @@ public class DownloaderConfiguration {
      * http下载器
      */
     @Bean
-    public HttpClientDownloader httpClientDownloader(PoolingHttpClientConnectionManager poolManager) {
+    public HttpClientDownloader httpClientDownloader(PoolingHttpClientConnectionManager poolManager,
+                                                     ObjectProvider<CrawlerListener> crawlerListeners) {
         HttpClientGenerator httpClientGenerator = new HttpClientGenerator(poolManager);
+
+        ProxyProvider proxyProvider = null;
+        if (CollectionUtils.isNotEmpty(downloadProperties.getProxies())) {
+            proxyProvider = new SimpleProxyProvider(downloadProperties.getProxies());
+        }
 
         return new HttpClientDownloaderBuilder()
                 .httpClientGenerator(httpClientGenerator)
                 .requestConverter(new HttpUriRequestConverter())
                 .responseHeader(false)
                 .defaultCharset(crawlerProperties.getCharset())
+                .proxyProvider(proxyProvider)
+                .addCrawlerListeners(crawlerListeners.orderedStream().collect(Collectors.toList()))
                 .build();
     }
 

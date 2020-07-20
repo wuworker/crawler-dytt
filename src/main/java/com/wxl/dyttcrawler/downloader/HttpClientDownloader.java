@@ -1,6 +1,9 @@
 package com.wxl.dyttcrawler.downloader;
 
+import com.google.common.collect.ImmutableList;
+import com.wxl.dyttcrawler.core.CrawlerListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -9,7 +12,7 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Task;
-import us.codecraft.webmagic.downloader.AbstractDownloader;
+import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.downloader.HttpClientRequestContext;
 import us.codecraft.webmagic.downloader.HttpUriRequestConverter;
 import us.codecraft.webmagic.proxy.Proxy;
@@ -20,6 +23,7 @@ import us.codecraft.webmagic.utils.HttpClientUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,7 +31,7 @@ import java.util.Map;
  * httpClient下载
  */
 @Slf4j
-public class HttpClientDownloader extends AbstractDownloader {
+public class HttpClientDownloader implements Downloader {
 
     private final Map<String, CloseableHttpClient> httpClients = new HashMap<>();
 
@@ -41,16 +45,22 @@ public class HttpClientDownloader extends AbstractDownloader {
 
     private String defaultCharset;
 
+    private List<CrawlerListener> crawlerListeners;
+
     HttpClientDownloader(HttpClientGenerator httpClientGenerator,
                          HttpUriRequestConverter httpUriRequestConverter,
                          ProxyProvider proxyProvider,
                          boolean responseHeader,
-                         String defaultCharset) {
+                         String defaultCharset,
+                         List<CrawlerListener> crawlerListeners) {
         this.httpClientGenerator = httpClientGenerator;
         this.httpUriRequestConverter = httpUriRequestConverter;
         this.proxyProvider = proxyProvider;
         this.responseHeader = responseHeader;
         this.defaultCharset = defaultCharset;
+        if (!CollectionUtils.isEmpty(crawlerListeners)) {
+            this.crawlerListeners = ImmutableList.copyOf(crawlerListeners);
+        }
     }
 
 
@@ -67,12 +77,12 @@ public class HttpClientDownloader extends AbstractDownloader {
         try {
             httpResponse = httpClient.execute(requestContext.getHttpUriRequest(), requestContext.getHttpClientContext());
             page = handleResponse(request, request.getCharset() != null ? request.getCharset() : task.getSite().getCharset(), httpResponse, task);
-            onSuccess(request);
+            onSuccess(request, task);
             log.info("downloading page success {}", request.getUrl());
             return page;
         } catch (IOException e) {
             log.warn("download page {} error", request.getUrl(), e);
-            onError(request);
+            onError(request, task);
             return page;
         } finally {
             if (httpResponse != null) {
@@ -135,5 +145,29 @@ public class HttpClientDownloader extends AbstractDownloader {
                     defaultCharset);
         }
         return charset;
+    }
+
+    protected void onSuccess(Request request, Task task) {
+        if (CollectionUtils.isNotEmpty(crawlerListeners)) {
+            for (CrawlerListener crawlerListener : crawlerListeners) {
+                try {
+                    crawlerListener.onSuccess(request, task);
+                } catch (Exception e) {
+                    log.error("download on success process error:{}", request, e);
+                }
+            }
+        }
+    }
+
+    protected void onError(Request request, Task task) {
+        if (CollectionUtils.isNotEmpty(crawlerListeners)) {
+            for (CrawlerListener crawlerListener : crawlerListeners) {
+                try {
+                    crawlerListener.onError(request, task);
+                } catch (Exception e) {
+                    log.error("download on error process error:{}", request, e);
+                }
+            }
+        }
     }
 }

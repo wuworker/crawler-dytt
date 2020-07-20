@@ -3,11 +3,11 @@ package com.wxl.dyttcrawler.processor;
 import com.wxl.dyttcrawler.urlhandler.PriorityUrlCalculator;
 import com.wxl.dyttcrawler.urlhandler.UrlFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import us.codecraft.webmagic.Page;
 
 import java.util.regex.Matcher;
@@ -38,7 +38,7 @@ public class MetaRefreshPageProcessor extends AbstractDyttProcessor {
         log.debug("process refresh meta:{}", page.getUrl());
         Element refreshMeta = getRefreshMeta(page);
         String content = refreshMeta.attr("content");
-        if (StringUtils.hasText(content)) {
+        if (StringUtils.isNotBlank(content)) {
             Matcher matcher = LOCATION_PATTERN.matcher(content);
             if (matcher.find()) {
                 String location = matcher.group(1);

@@ -6,6 +6,8 @@ import com.wxl.dyttcrawler.web.dto.Page;
 import com.wxl.dyttcrawler.web.dto.search.DyttQuery;
 import com.wxl.dyttcrawler.web.dto.search.DyttSimpleMovie;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -19,8 +21,6 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,34 +56,34 @@ public class DyttSearchService {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         // 标题,片名,译名
-        if (StringUtils.hasText(query.getTitle())) {
+        if (StringUtils.isNotBlank(query.getTitle())) {
             boolQueryBuilder.must(QueryBuilders.multiMatchQuery(query.getTitle(),
                     "title", "name", "translateNames"));
         }
 
         // year
-        if (!CollectionUtils.isEmpty(query.getYear())) {
+        if (CollectionUtils.isNotEmpty(query.getYear())) {
             boolQueryBuilder.must(QueryBuilders.termsQuery("year", query.getYear().toArray()));
         }
 
         // 产地
-        if (!CollectionUtils.isEmpty(query.getOriginPlace())) {
+        if (CollectionUtils.isNotEmpty(query.getOriginPlace())) {
             boolQueryBuilder.must(QueryBuilders.termsQuery("originPlace", query.getOriginPlace().toArray()));
         }
 
         // 类别
-        if (!CollectionUtils.isEmpty(query.getCategory())) {
+        if (CollectionUtils.isNotEmpty(query.getCategory())) {
             boolQueryBuilder.must(QueryBuilders.termsQuery("category", query.getCategory().toArray()));
         }
 
         // 主演,导演,编剧
-        if (StringUtils.hasText(query.getPeople())) {
+        if (StringUtils.isNotEmpty(query.getPeople())) {
             boolQueryBuilder.must(QueryBuilders.multiMatchQuery(query.getTitle(),
                     "act", "director", "screenwriter"));
         }
 
         // 标签
-        if (!CollectionUtils.isEmpty(query.getTags())) {
+        if (CollectionUtils.isNotEmpty(query.getTags())) {
             boolQueryBuilder.must(QueryBuilders.termsQuery("tags", query.getTags().toArray()));
         }
 

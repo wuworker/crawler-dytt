@@ -8,13 +8,13 @@ import com.wxl.dyttcrawler.urlhandler.PriorityUrlCalculator;
 import com.wxl.dyttcrawler.urlhandler.UrlFilter;
 import com.wxl.dyttcrawler.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.selector.Selectable;
 
@@ -106,7 +106,7 @@ public class DyttGndyMoviePageProcessor extends AbstractDyttProcessor {
         String publishDate = root.xpath("//div[@class=co_content8]/ul/text()")
                 .regex("发布时间.+([0-9]{4}-[0-9]{2}-[0-9]{2})")
                 .get();
-        if (StringUtils.hasText(publishDate)) {
+        if (StringUtils.isNotBlank(publishDate)) {
             movie.setPublishDate(DateUtils.parseDate(publishDate, dateDayFormatter));
         }
 
@@ -196,7 +196,7 @@ public class DyttGndyMoviePageProcessor extends AbstractDyttProcessor {
 
     protected Stream<String> wordFilter(Stream<String> stream) {
         return stream.map(this::wordFilter)
-                .filter(StringUtils::hasText);
+                .filter(StringUtils::isNotBlank);
     }
 
     /**
@@ -223,7 +223,7 @@ public class DyttGndyMoviePageProcessor extends AbstractDyttProcessor {
 
     private void setYear(DyttMovie movie, List<String> nodes) {
         String year = findBrValue(nodes, P_YEAR);
-        if (StringUtils.hasText(year)) {
+        if (StringUtils.isNotBlank(year)) {
             int y = Integer.parseInt(wordFilter(year));
             movie.setYear(y);
         }
@@ -232,7 +232,7 @@ public class DyttGndyMoviePageProcessor extends AbstractDyttProcessor {
     private void setOriginPlace(DyttMovie movie, List<String> nodes) {
         String places = findBrValue(nodes, P_ORIGIN_PLACE);
         List<String> list = new ArrayList<>();
-        if (StringUtils.hasText(places)) {
+        if (StringUtils.isNotBlank(places)) {
             Matcher matcher = placePattern.matcher(places);
             while (matcher.find()) {
                 String place = matcher.group();
@@ -368,7 +368,7 @@ public class DyttGndyMoviePageProcessor extends AbstractDyttProcessor {
     private List<String> collectList(String[] arrays) {
         return Arrays.stream(arrays)
                 .map(String::trim)
-                .filter(StringUtils::hasText)
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
     }
 

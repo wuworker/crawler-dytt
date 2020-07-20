@@ -1,8 +1,12 @@
 package com.wxl.dyttcrawler.downloader;
 
+import com.wxl.dyttcrawler.core.CrawlerListener;
 import org.springframework.util.Assert;
 import us.codecraft.webmagic.downloader.HttpUriRequestConverter;
 import us.codecraft.webmagic.proxy.ProxyProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Create by wuxingle on 2020/5/10
@@ -20,11 +24,12 @@ public class HttpClientDownloaderBuilder {
 
     private String defaultCharset;
 
+    private List<CrawlerListener> crawlerListeners = new ArrayList<>();
+
     public HttpClientDownloaderBuilder httpClientGenerator(HttpClientGenerator generator) {
         this.httpClientGenerator = generator;
         return this;
     }
-
 
     public HttpClientDownloaderBuilder requestConverter(HttpUriRequestConverter converter) {
         this.requestConverter = converter;
@@ -46,6 +51,11 @@ public class HttpClientDownloaderBuilder {
         return this;
     }
 
+    public HttpClientDownloaderBuilder addCrawlerListeners(List<CrawlerListener> listeners) {
+        this.crawlerListeners.addAll(listeners);
+        return this;
+    }
+
     public HttpClientDownloader build() {
         Assert.notNull(httpClientGenerator, "http client generator can not null");
         Assert.notNull(defaultCharset, "default charset can not null");
@@ -57,7 +67,8 @@ public class HttpClientDownloaderBuilder {
                 requestConverter,
                 proxyProvider,
                 responseHeader,
-                defaultCharset);
+                defaultCharset,
+                crawlerListeners);
     }
 }
 

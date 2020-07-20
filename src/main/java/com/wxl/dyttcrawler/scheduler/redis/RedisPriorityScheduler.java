@@ -3,31 +3,43 @@ package com.wxl.dyttcrawler.scheduler.redis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.wxl.dyttcrawler.scheduler.BatchDuplicateRemovedScheduler;
+import com.wxl.dyttcrawler.scheduler.BatchDuplicateRemover;
+import com.wxl.dyttcrawler.scheduler.ProcessFailScheduler;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Task;
-import us.codecraft.webmagic.scheduler.DuplicateRemovedScheduler;
 import us.codecraft.webmagic.scheduler.MonitorableScheduler;
-import us.codecraft.webmagic.scheduler.component.DuplicateRemover;
 
 import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by w1451 on 2020/05/20
  * redis优先队列
  */
-public class RedisPriorityScheduler extends DuplicateRemovedScheduler
-        implements MonitorableScheduler, DuplicateRemover, ProcessFailScheduler {
+public class RedisPriorityScheduler extends BatchDuplicateRemovedScheduler
+        implements MonitorableScheduler, BatchDuplicateRemover, ProcessFailScheduler {
 
+    /**
+     * 访问过的 set key
+     */
     private static final String VISITED_QUEUE_KEY = "dytt:visitedQueue:";
-
+    /**
+     * 待处理 zset key
+     */
     private static final String TODO_QUEUE_KEY = "dytt:todoQueue:";
-
+    /**
+     * url详情 hash key
+     */
     private static final String URL_DETAIL_KEY = "dytt:detailUrl:";
-
+    /**
+     * 处理失败 list key
+     */
     private static final String FAIL_QUEUE_KEY = "dytt:failQueue:";
 
     private RedisTemplate<String, String> template;
@@ -56,19 +68,24 @@ public class RedisPriorityScheduler extends DuplicateRemovedScheduler
 
     private ObjectMapper objectMapper;
 
+    private RedisSerializer<String> redisSerializer;
+
     public RedisPriorityScheduler(RedisConnectionFactory connectionFactory) {
         this(connectionFactory, new ObjectMapper());
     }
 
     public RedisPriorityScheduler(RedisConnectionFactory connectionFactory,
                                   ObjectMapper objectMapper) {
+        this.redisSerializer = RedisSerializer.string();
+
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        template.setKeySerializer(RedisSerializer.string());
-        template.setValueSerializer(RedisSerializer.string());
-        template.setHashKeySerializer(RedisSerializer.string());
-        template.setHashValueSerializer(RedisSerializer.string());
+        template.setKeySerializer(redisSerializer);
+        template.setValueSerializer(redisSerializer);
+        template.setHashKeySerializer(redisSerializer);
+        template.setHashValueSerializer(redisSerializer);
+        template.setDefaultSerializer(redisSerializer);
 
         template.setEnableDefaultSerializer(false);
         template.afterPropertiesSet();
@@ -79,15 +96,26 @@ public class RedisPriorityScheduler extends DuplicateRemovedScheduler
         this.hashOps = this.template.opsForHash();
         this.listOps = this.template.opsForList();
         this.pollScript = new PollScript();
-        setDuplicateRemover(this);
 
         this.objectMapper = objectMapper;
+        setDuplicateRemover(this);
     }
 
     @Override
     protected void pushWhenNoDuplicate(Request request, Task task) {
         hashOps.put(detailKey(task), request.getUrl(), serializerRequest(request));
         zSetOps.add(todoKey(task), request.getUrl(), request.getPriority());
+    }
+
+    @Override
+    protected void pushWhenNoDuplicate(Collection<Request> requests, Task task) {
+        Map<String, String> requestMap = requests.stream()
+                .collect(Collectors.toMap(Request::getUrl, this::serializerRequest));
+        hashOps.putAll(detailKey(task), requestMap);
+        Set<ZSetOperations.TypedTuple<String>> typedTupleList = requests.stream()
+                .map(req -> new DefaultTypedTuple<>(req.getUrl(), (double) req.getPriority()))
+                .collect(Collectors.toSet());
+        zSetOps.add(todoKey(task), typedTupleList);
     }
 
     @Override
@@ -103,6 +131,25 @@ public class RedisPriorityScheduler extends DuplicateRemovedScheduler
     public boolean isDuplicate(Request request, Task task) {
         Long add = setOps.add(visitedKey(task), request.getUrl());
         return add == null || add == 0;
+    }
+
+    @Override
+    public List<Request> filterDuplicate(List<Request> requests, Task task) {
+        List<Object> result = template.executePipelined((RedisCallback<Long>) conn -> {
+            for (Request request : requests) {
+                conn.sAdd(redisSerializer.serialize(visitedKey(task)),
+                        redisSerializer.serialize(request.getUrl()));
+            }
+            return null;
+        });
+        ArrayList<Request> filterRequests = new ArrayList<>();
+        for (int i = 0; i < requests.size(); i++) {
+            if (Objects.equals(result.get(i), 1L)) {
+                filterRequests.add(requests.get(i));
+            }
+        }
+
+        return filterRequests;
     }
 
     @Override

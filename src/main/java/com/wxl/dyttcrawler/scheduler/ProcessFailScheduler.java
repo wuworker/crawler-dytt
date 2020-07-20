@@ -1,4 +1,4 @@
-package com.wxl.dyttcrawler.scheduler.redis;
+package com.wxl.dyttcrawler.scheduler;
 
 import com.wxl.dyttcrawler.core.CrawlerListener;
 import us.codecraft.webmagic.Request;

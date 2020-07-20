@@ -1,19 +1,8 @@
 spring:
-  application:
-    name: dytt-crawler
-  resources:
-    static-locations: file:static/
-  data:
-    elasticsearch:
-      repositories:
-        enabled: false
-  elasticsearch:
-    rest:
-      uris: http://localhost:9200
   redis:
     host: localhost
     port: 6379
-    database: 1
+    database: 2
     timeout: 5s
     lettuce:
       pool:
@@ -21,23 +10,6 @@ spring:
         max-idle: 4
         min-idle: 1
         max-wait: 5s
-  jackson:
-    time-zone: GMT+8
-    serialization:
-      write-dates-as-timestamps: true
-    default-property-inclusion: non_null
-
-server:
-  port: 8080
-  error:
-    whitelabel:
-      enabled: false
-  tomcat:
-    connection-timeout: 5s
-    max-threads: 100
-    max-connections: 1000
-  servlet:
-    application-display-name: dytt-crawler-admin
 
 logging:
   level:
@@ -45,33 +17,5 @@ logging:
     com.wxl.dyttcrawler: debug
 
 crawler:
-  task-id: ${spring.application.name}
-  first-url: "https://www.dytt8.net"
-  charset: gbk
-  max-threads: 1
-  site:
-    sleep-time: 5s
-    retry-times: 2
-    retry-sleep-time: 1s
-    timeout: 10s
-    disable-cookie: true
-  download:
-    ignore-ssl: true
-    use-security: false
-    pool:
-      max-threads: 5
-      keep-alive: 1m
-      validate-after-inactivity: 30s
   scheduler:
     type: redis
-  store:
-    es:
-      retry-timeout: 5s
-      pool:
-        max-threads: 10
-      request:
-        connect-timeout: 5s
-        socket-timeout: 10s
-        connect-request-timeout: 5s
-        compress-enabled: true
-

@@ -2,8 +2,11 @@ package com.wxl.dyttcrawler.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import us.codecraft.webmagic.proxy.Proxy;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Create by wuxingle on 2020/5/16
@@ -28,6 +31,10 @@ public class DownloadProperties {
      */
     private PoolProperties pool = new PoolProperties();
 
+    /**
+     * 代理配置
+     */
+    private List<Proxy> proxies = new ArrayList<>();
 
     @Data
     public static class PoolProperties {
@@ -47,4 +54,5 @@ public class DownloadProperties {
          */
         private Duration validateAfterInactivity = Duration.ofMinutes(1);
     }
+
 }
