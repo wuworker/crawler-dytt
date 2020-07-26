@@ -1,0 +1,42 @@
+/**
+* 搜索框控制
+*/
+#search_detail_div div {
+    margin-top: 5px;
+}
+
+/**
+* 电影详情div
+*/
+#movie_list_div>div {
+    width: 280px;
+    height: 500px;
+    border: 1px DimGray solid;
+    display: inline-block;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 40px;
+    text-align: center;
+    cursor: pointer;
+}
+#movie_list_div>div>p {
+    margin: 10px;
+}
+#movie_list_div>div>img {
+    max-width: 270px;
+    height: 300px;
+    margin: 0px;
+}
+#movie_list_div>div>div {
+    text-align: left;
+    margin-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+/**
+* 分页输入框长度
+*/
+.pageInput {
+    width: 50px;
+}

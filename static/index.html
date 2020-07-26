@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影管理</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/movie.css">
+    <script src="js/common.js"></script>
+    <script src="js/requests.js"></script>
+    <script src="js/movie.js"></script>
+</head>
+
+<body>
+    <div id="head"></div>
+    <!-- 搜索框 -->
+    <div style="width: 100%;text-align: center;">
+        <input id="search_txt" type="text" name="name" placeholder="输入电影名搜索" autofocus
+            style="width: 60%;height:30px;margin-top: 30px;">
+        <button id="search_btn" type="button" onclick="reset_search()">🔍</button>
+    </div>
+    <div id="search_detail_div" style="text-align: center;">
+        <details>
+            <summary>展示高级搜索选项</summary>
+            <div style="text-align: left;width: 55%;display: inline-block;">
+                <div>年代:
+                    <label><input type="radio" name="year" value="0" checked>不限制</label>
+                    <label><input type="radio" name="year" value="1">今年</label>
+                    <label><input type="radio" name="year" value="2">近3年</label>
+                    <label><input type="radio" name="year" value="3">近5年</label>
+                    <label><input type="radio" name="year" value="4">自定义:</label>
+                    <label><input id="year_start_txt" type="number" min="1985" max="2020" name="year_start"></label>
+                    ~
+                    <label><input id="year_end_txt" type="number" min="1985" max="2020" name="year_end"></label>
+                </div>
+                <div>产地:
+                    <label><input type="checkbox" name="originPlace" value="中国">中国</label>
+                    <label><input type="checkbox" name="originPlace" value="中国大陆">中国大陆</label>
+                    <label><input type="checkbox" name="originPlace" value="中国香港">中国香港</label>
+                    <label><input type="checkbox" name="originPlace" value="美国">美国</label>
+                    <label><input type="checkbox" name="originPlace" value="英国">英国</label>
+                    <label><input type="checkbox" name="originPlace" value="日本">日本</label>
+                    <label><input type="checkbox" name="originPlace" value="韩国">韩国</label>
+                    <label><input id="place_custom_box" type="checkbox" name="originPlaceMore" value="更多">更多:</label>
+                    <label><input id="place_custom_txt" type="text" name="place_custom"></label>
+                </div>
+                <div>分类:
+                    <label><input type="checkbox" name="category" value="剧情">剧情</label>
+                    <label><input type="checkbox" name="category" value="动作">动作</label>
+                    <label><input type="checkbox" name="category" value="惊悚">惊悚</label>
+                    <label><input type="checkbox" name="category" value="喜剧">喜剧</label>
+                    <label><input type="checkbox" name="category" value="悬疑">悬疑</label>
+                    <label><input type="checkbox" name="category" value="犯罪">犯罪</label>
+                    <label><input type="checkbox" name="category" value="恐怖">恐怖</label>
+                    <label><input type="checkbox" name="category" value="奇幻">奇幻</label>
+                    <label><input type="checkbox" name="category" value="冒险">冒险</label>
+                    <label><input type="checkbox" name="category" value="爱情">爱情</label>
+                    <label><input type="checkbox" name="category" value="科幻">科幻</label>
+                    <label><input type="checkbox" name="category" value="动画">动画</label>
+                    <label><input type="checkbox" name="category" value="战争">战争</label>
+                    <label><input type="checkbox" name="category" value="传记">传记</label>
+                    <label><input type="checkbox" name="category" value="历史">历史</label>
+                    <label><input type="checkbox" name="category" value="家庭">家庭</label>
+                    <label><input type="checkbox" name="category" value="古装">古装</label>
+                    <label><input type="checkbox" name="category" value="灾难">灾难</label>
+                    <label><input type="checkbox" name="category" value="纪录片">纪录片</label>
+                    <label><input id="category_custom_box" type="checkbox" name="category" value="更多">更多:</label>
+                    <label><input id="category_custom_txt" type="text" name="category_custom"></label>
+                </div>
+            </div>
+        </details>
+    </div>
+    <!-- 搜索个数 -->
+    <div style="text-align: left;margin-left: 20px;">
+        <font color='DarkGray'>搜索结果: 共搜索到<span id="result_total_span"></span>条记录</font>
+    </div>
+    <!-- 结果列表 -->
+    <div id="movie_list_div" style="text-align: left;">
+    </div>
+    <!-- 分页 -->
+    <div style="text-align: center; margin-top: 30px;">
+        <button id="prePageBtn" type="button" onclick="pre_search()">上一页</button>
+        <span style="margin: 20px;">
+            第<input class="pageInput" type="number" name="pageNo" value="1" readonly></input>页
+            共<input class="pageInput" type="number" name="page" value="0" readonly></input>页
+        </span>
+        <button id="afterPageBtn" type="button" onclick="after_search()">下一页</button>
+    </div>
+    <script>
+        $(function () {
+            $('#head').load('view/common/head.html', function () {
+                $('#title_h1').text("首页")
+            });
+
+            reset_search();
+
+            $(document).keyup(function (event) {
+                if (event.keyCode == 13) {
+                    $("#search_btn").trigger("click");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

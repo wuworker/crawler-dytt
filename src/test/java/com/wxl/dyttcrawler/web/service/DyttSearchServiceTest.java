@@ -28,7 +28,8 @@ public class DyttSearchServiceTest {
         DyttQuery query = new DyttQuery();
         query.setFrom(0);
         query.setSize(5);
-        query.setYear(Lists.newArrayList(2020));
+        query.setYearEnd(200);
+        query.setYearStart(2019);
         query.setCategory(Lists.newArrayList("剧情"));
         query.setOriginPlace(Lists.newArrayList("中国大陆"));
         query.setTitle("追龙幽魂");

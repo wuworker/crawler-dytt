@@ -16,6 +16,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -62,8 +63,16 @@ public class DyttSearchService {
         }
 
         // year
-        if (CollectionUtils.isNotEmpty(query.getYear())) {
-            boolQueryBuilder.must(QueryBuilders.termsQuery("year", query.getYear().toArray()));
+        if (query.getYearStart() != null || query.getYearEnd() != null) {
+            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("year");
+            if (query.getYearStart() != null) {
+                rangeQueryBuilder.gte(query.getYearStart());
+            }
+            if (query.getYearEnd() != null) {
+                rangeQueryBuilder.lte(query.getYearEnd());
+
+            }
+            boolQueryBuilder.must(rangeQueryBuilder);
         }
 
         // 产地

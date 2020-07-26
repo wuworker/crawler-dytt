@@ -29,7 +29,7 @@ public class DyttStatisticController {
      *
      * @return y1今年数, y3近3年, y5近5年, y全部
      */
-    @GetMapping("/year")
+    @GetMapping("/year/count")
     public ResultDTO<YearCount> getYearCount() throws IOException {
         YearCount yearCount = dyttStatisticService.getYearCount();
         return ResultDTO.ok(yearCount);
@@ -38,7 +38,7 @@ public class DyttStatisticController {
     /**
      * 获取种类对应的电影数
      */
-    @GetMapping("/category")
+    @GetMapping("/category/count")
     public ResultDTO<CategoryCount> getCategoryCount() throws IOException {
         CategoryCount categoryCount = dyttStatisticService.getCategoryCount();
         return ResultDTO.ok(categoryCount);
@@ -48,7 +48,7 @@ public class DyttStatisticController {
      * 基数统计
      * 种类,产地,语言
      */
-    @GetMapping("/base")
+    @GetMapping("/base/count")
     public ResultDTO<StatisticCardinality> getStatisticCardinality() throws IOException {
         StatisticCardinality statisticCardinality = dyttStatisticService.getStatisticCardinality();
         return ResultDTO.ok(statisticCardinality);
@@ -57,7 +57,7 @@ public class DyttStatisticController {
     /**
      * 每月电影数量，按year分组
      */
-    @GetMapping("/year/month")
+    @GetMapping("/year/month/count")
     public ResultDTO<YearMonthCount> getMonthCountGroupByYear() throws IOException {
         YearMonthCount yearMonthCount = dyttStatisticService.getMonthCountGroupByYear();
         return ResultDTO.ok(yearMonthCount);
@@ -67,7 +67,7 @@ public class DyttStatisticController {
     /**
      * 地区电影数量，按year分组
      */
-    @GetMapping("/year/place")
+    @GetMapping("/year/place/count")
     public ResultDTO<YearPlaceCount> getPlaceCountGroupByYear() throws IOException {
         YearPlaceCount yearPlaceCount = dyttStatisticService.getPlaceCountGroupByYear();
         return ResultDTO.ok(yearPlaceCount);

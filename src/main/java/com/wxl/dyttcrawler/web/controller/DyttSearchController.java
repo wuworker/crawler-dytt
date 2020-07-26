@@ -30,7 +30,7 @@ public class DyttSearchController {
     /**
      * 搜索
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResultDTO<Page<DyttSimpleMovie>> searchMovie(@RequestBody DyttQuery query) throws IOException {
         query.initFromSize();
         Page<DyttSimpleMovie> page = dyttSearchService.searchDyttMovie(query);

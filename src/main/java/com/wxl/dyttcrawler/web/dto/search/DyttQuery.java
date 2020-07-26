@@ -17,8 +17,11 @@ public class DyttQuery implements Serializable {
     // 标题,片名,译名
     private String title;
 
-    // 年代
-    private List<Integer> year;
+    // 年代起始
+    private Integer yearStart;
+
+    // 年代结束
+    private Integer yearEnd;
 
     // 产地
     private List<String> originPlace;
