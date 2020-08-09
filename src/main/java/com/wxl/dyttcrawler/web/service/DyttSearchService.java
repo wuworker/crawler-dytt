@@ -121,7 +121,7 @@ public class DyttSearchService {
 
         }
 
-        return new Page<>(movies, (int) totalHits);
+        return new Page<>(movies, totalHits);
     }
 
     /**

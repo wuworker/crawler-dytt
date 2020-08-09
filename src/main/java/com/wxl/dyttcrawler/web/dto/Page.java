@@ -17,13 +17,13 @@ public class Page<T> implements Serializable {
 
     private List<T> list;
 
-    private int total;
+    private long total;
 
     public Page() {
-        this(Collections.emptyList(), 0);
+        this(Collections.emptyList(), 0L);
     }
 
-    public Page(List<T> list, int total) {
+    public Page(List<T> list, long total) {
         this.list = list;
         this.total = total;
     }

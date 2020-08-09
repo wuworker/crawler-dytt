@@ -1,18 +1,24 @@
 package com.wxl.dyttcrawler.web.service;
 
+import com.wxl.dyttcrawler.web.dto.Item;
+import com.wxl.dyttcrawler.web.dto.TermItem;
 import com.wxl.dyttcrawler.web.dto.statistic.*;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.filter.Filters;
+import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
-import org.elasticsearch.search.aggregations.bucket.range.Range;
-import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
@@ -21,8 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.wxl.dyttcrawler.core.DyttConstants.Elastic.DYTT_INDEX;
 import static com.wxl.dyttcrawler.core.DyttConstants.Elastic.DYTT_TYPE;
@@ -39,85 +47,17 @@ public class DyttStatisticService {
     private RestHighLevelClient client;
 
     /**
-     * 年份聚合
-     *
-     * @return y1今年数, y3近3年, y5近5年, y全部
-     */
-    public YearCount getYearCount() throws IOException {
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-
-        int year = LocalDate.now().getYear();
-        RangeAggregationBuilder aggregationBuilder = AggregationBuilders.range("years")
-                .field("year")
-                .addUnboundedFrom("y1", year)
-                .addUnboundedFrom("y3", year - 3)
-                .addUnboundedFrom("y5", year - 5)
-                .addUnboundedTo("y", year + 1);
-
-        sourceBuilder.size(0).aggregation(aggregationBuilder);
-
-        SearchRequest request = new SearchRequest()
-                .indices(DYTT_INDEX)
-                .types(DYTT_TYPE)
-                .source(sourceBuilder);
-
-        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-        if (log.isDebugEnabled()) {
-            log.debug("get year count:{}", response);
-        }
-
-        Range range = response.getAggregations().get("years");
-
-
-        YearCount yearCount = new YearCount();
-        for (Range.Bucket bucket : range.getBuckets()) {
-            yearCount.add(bucket.getKeyAsString(), (int) bucket.getDocCount());
-        }
-
-        return yearCount;
-    }
-
-    /**
-     * 种类聚合
-     */
-    public CategoryCount getCategoryCount() throws IOException {
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-
-        TermsAggregationBuilder aggregationBuilder = AggregationBuilders.terms("categories")
-                .field("category")
-                .size(10);
-
-        sourceBuilder.size(0).aggregation(aggregationBuilder);
-
-        SearchRequest request = new SearchRequest()
-                .indices(DYTT_INDEX)
-                .types(DYTT_TYPE)
-                .source(sourceBuilder);
-
-        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-        if (log.isDebugEnabled()) {
-            log.debug("get category count:{}", response);
-        }
-
-        Terms terms = response.getAggregations().get("categories");
-
-        CategoryCount categoryCount = new CategoryCount();
-        for (Terms.Bucket bucket : terms.getBuckets()) {
-            categoryCount.add(bucket.getKeyAsString(), (int) bucket.getDocCount());
-        }
-        return categoryCount;
-    }
-
-    /**
-     * 基数统计
+     * 基础数据
      * 种类,产地,语言
      */
-    public StatisticCardinality getStatisticCardinality() throws IOException {
+    public BaseStatCount getBaseStat() throws IOException {
+
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-        sourceBuilder.aggregation(AggregationBuilders.cardinality("categorySize").field("category"))
-                .aggregation(AggregationBuilders.cardinality("placeSize").field("originPlace"))
-                .aggregation(AggregationBuilders.cardinality("languageSize").field("language"))
+        // 基数聚合
+        sourceBuilder.aggregation(AggregationBuilders.cardinality("categorySize").field(StatDimension.CATEGORY))
+                .aggregation(AggregationBuilders.cardinality("placeSize").field(StatDimension.PLACE))
+                .aggregation(AggregationBuilders.cardinality("languageSize").field(StatDimension.LANGUAGE))
                 .size(0);
 
         SearchRequest request = new SearchRequest()
@@ -129,35 +69,72 @@ public class DyttStatisticService {
         if (log.isDebugEnabled()) {
             log.debug("get statistic cardinality result:{}", response);
         }
+        long totalHits = response.getHits().getTotalHits();
 
         Aggregations aggregations = response.getAggregations();
-        int categorySize = (int) ((Cardinality) aggregations.get("categorySize")).getValue();
-        int placeSize = (int) ((Cardinality) aggregations.get("placeSize")).getValue();
-        int languageSize = (int) ((Cardinality) aggregations.get("languageSize")).getValue();
+        long categorySize = ((Cardinality) aggregations.get("categorySize")).getValue();
+        long placeSize = ((Cardinality) aggregations.get("placeSize")).getValue();
+        long languageSize = ((Cardinality) aggregations.get("languageSize")).getValue();
 
-        return new StatisticCardinality(categorySize, placeSize, languageSize);
+        return new BaseStatCount(totalHits, categorySize, placeSize, languageSize);
+    }
+
+    /**
+     * 按字段聚合
+     */
+    public TermItem<String, Long> aggByField(String field) throws IOException {
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms("result")
+                .field(field)
+                .size(10);
+
+        sourceBuilder.aggregation(termsBuilder).size(0);
+
+        SearchRequest request = new SearchRequest()
+                .indices(DYTT_INDEX)
+                .types(DYTT_TYPE)
+                .source(sourceBuilder);
+
+        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+        if (log.isDebugEnabled()) {
+            log.debug("get category count:{}", response);
+        }
+
+        Terms terms = response.getAggregations().get("result");
+
+        long sumOfOtherDocCounts = terms.getSumOfOtherDocCounts();
+        List<Item<String, Long>> items = new ArrayList<>();
+        for (Terms.Bucket bucket : terms.getBuckets()) {
+            items.add(new Item<>(bucket.getKeyAsString(), bucket.getDocCount()));
+        }
+
+        return new TermItem<>(items, sumOfOtherDocCounts);
     }
 
 
     /**
      * 每月数量，按year分组
      */
-    public YearMonthCount getMonthCountGroupByYear() throws IOException {
+    public List<YearMonthCount> getMonthCountGroupByYear(List<Integer> years) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-        DateHistogramAggregationBuilder aggBuilder = AggregationBuilders.dateHistogram("years")
-                .field("publishDate")
-                .dateHistogramInterval(DateHistogramInterval.YEAR)
-                .format("yyyy");
+        // 按publishDate年份过滤
+        QueryBuilder[] queryBuilders = years.stream()
+                .map(year -> QueryBuilders.rangeQuery("publishDate").gte(year).lt(year + 1))
+                .toArray(QueryBuilder[]::new);
 
+        FiltersAggregationBuilder yearFilters = AggregationBuilders.filters("yearFilters", queryBuilders);
+
+        // 按月聚合
         DateHistogramAggregationBuilder subAggBuilder = AggregationBuilders.dateHistogram("months")
                 .field("publishDate")
                 .dateHistogramInterval(DateHistogramInterval.MONTH)
                 .format("M");
 
-        aggBuilder.subAggregation(subAggBuilder);
+        yearFilters.subAggregation(subAggBuilder);
 
-        sourceBuilder.aggregation(aggBuilder).size(0);
+        sourceBuilder.aggregation(yearFilters).size(0);
 
         SearchRequest request = new SearchRequest()
                 .indices(DYTT_INDEX)
@@ -169,46 +146,55 @@ public class DyttStatisticService {
             log.debug("get month count group by year result:{}", response);
         }
 
-        Histogram yearHistogram = response.getAggregations().get("years");
+        Filters filters = response.getAggregations().get("yearFilters");
 
-        List<? extends Histogram.Bucket> yearBuckets = yearHistogram.getBuckets();
+        List<YearMonthCount> yearMonthCounts = new ArrayList<>(filters.getBuckets().size());
+        for (int i = 0; i < filters.getBuckets().size(); i++) {
+            Map<Integer, MonthCount> monthCounts = new LinkedHashMap<>();
+            Histogram months = filters.getBuckets().get(i).getAggregations().get("months");
 
-        YearMonthCount yearMonthCount = new YearMonthCount();
-        for (Histogram.Bucket yearBucket : yearBuckets) {
-            String key = yearBucket.getKeyAsString();
-
-            Histogram monthHistogram = yearBucket.getAggregations().get("months");
-            MonthCount monthCount = new MonthCount();
-            for (Histogram.Bucket bucket : monthHistogram.getBuckets()) {
-                monthCount.add(Integer.parseInt(bucket.getKeyAsString()), (int) bucket.getDocCount());
+            for (Histogram.Bucket bucket : months.getBuckets()) {
+                int month = Integer.parseInt(bucket.getKeyAsString());
+                monthCounts.put(month, new MonthCount(month, bucket.getDocCount()));
             }
-            monthCount.fillMonth();
+            // 补充其他月份为0
+            if (monthCounts.size() < 12) {
+                for (int j = 1; j <= 12; j++) {
+                    monthCounts.putIfAbsent(j, new MonthCount(j, 0L));
+                }
+            }
 
-            yearMonthCount.add(key, monthCount);
+            yearMonthCounts.add(new YearMonthCount(years.get(i), new ArrayList<>(monthCounts.values())));
         }
 
-        return yearMonthCount;
+        return yearMonthCounts;
     }
 
 
     /**
      * 地区数据，按year分组
      */
-    public YearPlaceCount getPlaceCountGroupByYear() throws IOException {
+    public List<YearPlaceCount> getPlaceCountGroupByYear(List<Integer> years) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-        DateHistogramAggregationBuilder aggBuilder = AggregationBuilders.dateHistogram("years")
-                .field("publishDate")
-                .dateHistogramInterval(DateHistogramInterval.YEAR)
-                .format("yyyy");
+        // 年份过滤
+        FilterAggregationBuilder filterAgg = AggregationBuilders.filter("yearFilter",
+                QueryBuilders.termsQuery("year", years));
 
+        // 先按year聚合
+        TermsAggregationBuilder aggBuilder = AggregationBuilders.terms("years")
+                .field("year")
+                .size(years.size());
+
+        // 再按place聚合
         TermsAggregationBuilder subAggBuilder = AggregationBuilders.terms("places")
                 .field("originPlace")
                 .size(10);
 
+        filterAgg.subAggregation(aggBuilder);
         aggBuilder.subAggregation(subAggBuilder);
 
-        sourceBuilder.aggregation(aggBuilder).size(0);
+        sourceBuilder.aggregation(filterAgg).size(0);
 
         SearchRequest request = new SearchRequest()
                 .indices(DYTT_INDEX)
@@ -220,23 +206,23 @@ public class DyttStatisticService {
             log.debug("get place count group by year result:{}", response);
         }
 
-        Histogram yearHistogram = response.getAggregations().get("years");
+        Filter filter = response.getAggregations().get("yearFilter");
+        Terms yearsTerm = filter.getAggregations().get("years");
 
-        List<? extends Histogram.Bucket> yearBuckets = yearHistogram.getBuckets();
+        List<YearPlaceCount> yearPlaceCounts = new ArrayList<>();
+        for (Terms.Bucket bucket : yearsTerm.getBuckets()) {
+            Terms aggregations = bucket.getAggregations().get("places");
 
-        YearPlaceCount yearPlaceCount = new YearPlaceCount();
-        for (Histogram.Bucket yearBucket : yearBuckets) {
-            String key = yearBucket.getKeyAsString();
-            Terms terms = yearBucket.getAggregations().get("places");
+            List<PlaceCount> placeCounts = new ArrayList<>();
 
-            PlaceCount placeCount = new PlaceCount();
-            for (Terms.Bucket bucket : terms.getBuckets()) {
-                placeCount.add(bucket.getKeyAsString(), (int) bucket.getDocCount());
+            for (Terms.Bucket bk : aggregations.getBuckets()) {
+                placeCounts.add(new PlaceCount(bk.getKeyAsString(), bk.getDocCount()));
             }
-            yearPlaceCount.add(key, placeCount);
+
+            yearPlaceCounts.add(new YearPlaceCount(bucket.getKeyAsString(), placeCounts));
         }
 
-        return yearPlaceCount;
+        return yearPlaceCounts;
     }
 
 }

@@ -1,20 +1,20 @@
 package com.wxl.dyttcrawler.web.dto.statistic;
 
-import com.wxl.dyttcrawler.web.dto.AggTwoResult;
+import com.wxl.dyttcrawler.web.dto.Item;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * Create by wuxingle on 2020/7/13
  * 年份地区数据
  */
-public class YearPlaceCount extends AggTwoResult<String, String, Integer> {
+@NoArgsConstructor
+public class YearPlaceCount extends Item<String, List<PlaceCount>> {
 
     private static final long serialVersionUID = 7480660194107013629L;
 
-    /**
-     * 新增地区数据
-     */
-    public void add(String key, PlaceCount placeCount) {
-        super.add(key, placeCount);
+    public YearPlaceCount(String key, List<PlaceCount> value) {
+        super(key, value);
     }
-
 }

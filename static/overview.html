@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影管理</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/statistic.css">
+    <script src="js/common.js"></script>
+    <script src="js/requests.js"></script>
+    <script src="js/statistic.js"></script>
+</head>
+
+<body>
+    <div id="head"></div>
+    <p>基础数据概览:</p>
+    <div style="text-align: center;">
+        <span id="count" class="base_span">影片总数: </span>
+        <span id="category" class="base_span">分类数: </span>
+        <span id="place" class="base_span">来源地区: </span>
+        <span id="language" class="base_span">覆盖语言: </span>
+    </div>
+    <p>基础数据分布:</p>
+    <div>
+        <div id="category_chart" class="pie_chart"></div>
+        <div id="place_chart" class="pie_chart"></div>
+        <div id="lang_chart" class="pie_chart"></div>
+        <div id="year_chart" class="pie_chart"></div>
+    </div>
+    <p>电影数量统计:</p>
+    <div>
+        <div id="month_year_chart" class="year_chart"></div>
+        <div id="place_year_chart" class="year_chart"></div>
+    </div>
+    <script>
+        $(function () {
+            $('#head').load('view/head.html', function () {
+                $('#title_h1').text("数据分析")
+            });
+
+            set_color();
+            reader_base();
+            reader_category();
+            reader_place();
+            reader_language();
+            reader_year();
+            reader_month_count();
+            reader_place_count();
+        });
+    </script>
+</body>
+
+</html>

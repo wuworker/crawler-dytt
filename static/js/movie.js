@@ -74,7 +74,7 @@ var search_movie = function () {
 
     console.log(query);
 
-    do_search_request(query, function (data) {
+    do_search(query, function (data) {
 
         remove_movie_item();
 

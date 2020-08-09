@@ -1,0 +1,28 @@
+/**
+* 基础数据
+*/
+.base_span {
+    width: 24%;
+    height: 50px;
+    line-height: 50px;
+    border: 1px black solid;
+    display: inline-block;
+    text-align: center;
+    
+}
+
+/**
+* 饼图
+*/
+.pie_chart {
+    width: 48%;
+    display: inline-block;
+}
+
+/**
+* 按年统计图表
+*/
+.year_chart {
+    width: 48%;
+    display: inline-block;
+}

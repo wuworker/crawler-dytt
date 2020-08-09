@@ -1,4 +1,9 @@
 /**
+ * 来源url
+ */
+CREDIT_ORIGIN = "https://www.dytt8.net/index.htm";
+
+/**
  * 默认电影封面
  */
 DEFAULT_MOVIE_PIC_PATH = "/img/moviePic404.jpg";

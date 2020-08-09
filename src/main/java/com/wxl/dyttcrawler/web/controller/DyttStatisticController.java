@@ -1,15 +1,24 @@
 package com.wxl.dyttcrawler.web.controller;
 
+import com.wxl.dyttcrawler.web.dto.ResultCode;
 import com.wxl.dyttcrawler.web.dto.ResultDTO;
-import com.wxl.dyttcrawler.web.dto.statistic.*;
+import com.wxl.dyttcrawler.web.dto.TermItem;
+import com.wxl.dyttcrawler.web.dto.statistic.BaseStatCount;
+import com.wxl.dyttcrawler.web.dto.statistic.StatDimension;
+import com.wxl.dyttcrawler.web.dto.statistic.YearMonthCount;
+import com.wxl.dyttcrawler.web.dto.statistic.YearPlaceCount;
 import com.wxl.dyttcrawler.web.service.DyttStatisticService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Create by wuxingle on 2020/7/12
@@ -25,52 +34,67 @@ public class DyttStatisticController {
 
 
     /**
-     * 获取年份对应的电影数
-     *
-     * @return y1今年数, y3近3年, y5近5年, y全部
+     * 获取基础数据
+     * 总数,种类,产地,语言
      */
-    @GetMapping("/year/count")
-    public ResultDTO<YearCount> getYearCount() throws IOException {
-        YearCount yearCount = dyttStatisticService.getYearCount();
-        return ResultDTO.ok(yearCount);
+    @GetMapping("/base")
+    public ResultDTO<BaseStatCount> getBaseStat() throws IOException {
+        BaseStatCount baseStatCount = dyttStatisticService.getBaseStat();
+        return ResultDTO.ok(baseStatCount);
     }
 
-    /**
-     * 获取种类对应的电影数
-     */
-    @GetMapping("/category/count")
-    public ResultDTO<CategoryCount> getCategoryCount() throws IOException {
-        CategoryCount categoryCount = dyttStatisticService.getCategoryCount();
-        return ResultDTO.ok(categoryCount);
-    }
 
     /**
-     * 基数统计
-     * 种类,产地,语言
+     * 按字段聚合
      */
-    @GetMapping("/base/count")
-    public ResultDTO<StatisticCardinality> getStatisticCardinality() throws IOException {
-        StatisticCardinality statisticCardinality = dyttStatisticService.getStatisticCardinality();
-        return ResultDTO.ok(statisticCardinality);
+    @GetMapping("/agg/{field}")
+    public ResultDTO<TermItem<String, Long>> aggByField(@PathVariable("field") String field) throws IOException {
+        switch (field) {
+            case StatDimension.CATEGORY:
+            case StatDimension.LANGUAGE:
+            case StatDimension.PLACE:
+            case StatDimension.YEAR:
+                break;
+            default:
+                return ResultDTO.fail(ResultCode.BAD_PARAMS);
+        }
+
+        TermItem<String, Long> termItem = dyttStatisticService.aggByField(field);
+        return ResultDTO.ok(termItem);
     }
 
     /**
      * 每月电影数量，按year分组
      */
-    @GetMapping("/year/month/count")
-    public ResultDTO<YearMonthCount> getMonthCountGroupByYear() throws IOException {
-        YearMonthCount yearMonthCount = dyttStatisticService.getMonthCountGroupByYear();
-        return ResultDTO.ok(yearMonthCount);
+    @GetMapping("/agg/month/year")
+    public ResultDTO<List<YearMonthCount>> getMonthCountGroupByYear(
+            @RequestParam(value = "years", required = false) String yearStr) throws IOException {
+        List<Integer> years = parseYears(yearStr);
+
+        List<YearMonthCount> yearMonthCounts = dyttStatisticService.getMonthCountGroupByYear(years);
+        return ResultDTO.ok(yearMonthCounts);
     }
 
 
     /**
      * 地区电影数量，按year分组
      */
-    @GetMapping("/year/place/count")
-    public ResultDTO<YearPlaceCount> getPlaceCountGroupByYear() throws IOException {
-        YearPlaceCount yearPlaceCount = dyttStatisticService.getPlaceCountGroupByYear();
+    @GetMapping("/agg/place/year")
+    public ResultDTO<List<YearPlaceCount>> getPlaceCountGroupByYear(
+            @RequestParam(value = "years", required = false) String yearStr) throws IOException {
+        List<Integer> years = parseYears(yearStr);
+
+        List<YearPlaceCount> yearPlaceCount = dyttStatisticService.getPlaceCountGroupByYear(years);
         return ResultDTO.ok(yearPlaceCount);
     }
 
+
+    private List<Integer> parseYears(String yearStr) {
+        if (StringUtils.isBlank(yearStr)) {
+            return Collections.singletonList(LocalDate.now().getYear());
+        }
+        return Arrays.stream(yearStr.split(","))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
 }
