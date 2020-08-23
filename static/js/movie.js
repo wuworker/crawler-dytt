@@ -150,7 +150,7 @@ var create_movie_item = function (data) {
     }));
     container.append($("<br>"));
     container.append($("<div>", {
-        text: "评分: " + data.score
+        text: "评分: " + (data.score == undefined ? "" : data.score)
     }));
     container.append($("<div>", {
         text: "产地: " + data.originPlace.join(',')

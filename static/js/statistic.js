@@ -375,7 +375,11 @@ var place_year_config = {
         backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
         shadow: true
     },
-    series: []
+    series: [],
+    credits: {
+        text: "电影天堂",
+        href: CREDIT_ORIGIN
+    }
 };
 
 function reader_place_count() {
