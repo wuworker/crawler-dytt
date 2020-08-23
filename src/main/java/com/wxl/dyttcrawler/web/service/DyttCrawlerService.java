@@ -1,6 +1,7 @@
 package com.wxl.dyttcrawler.web.service;
 
 import com.wxl.dyttcrawler.core.Crawler;
+import com.wxl.dyttcrawler.scheduler.ProcessFailScheduler;
 import com.wxl.dyttcrawler.web.dto.crawler.CrawlerProgress;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,9 @@ public class DyttCrawlerService {
     private Scheduler scheduler;
 
     /**
-     * 手动同步调用url
+     * 手动调用url
      */
-    public void manualInvokeUrl(String url) {
+    public void crawlUrl(String url) {
         crawler.crawl(url);
     }
 
@@ -55,14 +56,21 @@ public class DyttCrawlerService {
      * 获取爬虫进度
      */
     public CrawlerProgress getCrawlerProgress() {
+        CrawlerProgress crawlerProgress = new CrawlerProgress();
         if (scheduler instanceof MonitorableScheduler) {
             MonitorableScheduler monitorableScheduler = (MonitorableScheduler) scheduler;
 
             int todoSize = monitorableScheduler.getLeftRequestsCount(crawler);
             int totalSize = monitorableScheduler.getTotalRequestsCount(crawler);
-            return new CrawlerProgress(todoSize, totalSize);
+            crawlerProgress.setTodoSize(todoSize);
+            crawlerProgress.setTotalSize(totalSize);
         }
-        return new CrawlerProgress();
+        if (scheduler instanceof ProcessFailScheduler) {
+            int failCount = ((ProcessFailScheduler) scheduler).getFailCount(crawler);
+            crawlerProgress.setFailSize(failCount);
+        }
+
+        return crawlerProgress;
     }
 
     /**

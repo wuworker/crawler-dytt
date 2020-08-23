@@ -29,14 +29,14 @@ public class DyttCrawlerController {
 
 
     /**
-     * 手动调用url
+     * 手动保存url
      */
-    @PostMapping(value = "/manualUrl")
-    public ResultDTO<Boolean> manualInvokeUrl(@RequestBody ManualUrl manualUrl) {
+    @PostMapping(value = "/save")
+    public ResultDTO<Boolean> saveUrl(@RequestBody ManualUrl manualUrl) {
         if (StringUtils.isBlank(manualUrl.getUrl())) {
             return ResultDTO.fail(BAD_PARAMS);
         }
-        dyttCrawlerService.manualInvokeUrl(manualUrl.getUrl());
+        dyttCrawlerService.crawlUrl(manualUrl.getUrl());
         return ResultDTO.ok();
     }
 
@@ -87,5 +87,6 @@ public class DyttCrawlerController {
         boolean res = dyttCrawlerService.resetCrawlerProgress();
         return ResultDTO.ok(res);
     }
+
 
 }

@@ -20,10 +20,15 @@ public class CrawlerProgress implements Serializable {
     /**
      * 待处理数
      */
-    private Integer todoSize;
+    private Integer todoSize = 0;
 
     /**
      * 处理总数
      */
-    private Integer totalSize;
+    private Integer totalSize = 0;
+
+    /**
+     * 处理失败数
+     */
+    private Integer failSize = 0;
 }

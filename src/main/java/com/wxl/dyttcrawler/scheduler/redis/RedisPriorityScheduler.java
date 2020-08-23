@@ -42,27 +42,27 @@ public class RedisPriorityScheduler extends BatchDuplicateRemovedScheduler
      */
     private static final String FAIL_QUEUE_KEY = "dytt:failQueue:";
 
-    private RedisTemplate<String, String> template;
+    protected RedisTemplate<String, String> template;
 
     /**
      * zset类型保存todo队列
      */
-    private ZSetOperations<String, String> zSetOps;
+    protected ZSetOperations<String, String> zSetOps;
 
     /**
      * set类型保存visited队列
      */
-    private SetOperations<String, String> setOps;
+    protected SetOperations<String, String> setOps;
 
     /**
      * hash类型保存url对应的request
      */
-    private HashOperations<String, String, String> hashOps;
+    protected HashOperations<String, String, String> hashOps;
 
     /**
      * list类型保存失败队列
      */
-    private ListOperations<String, String> listOps;
+    protected ListOperations<String, String> listOps;
 
     private RedisScript<String> pollScript;
 
@@ -170,6 +170,12 @@ public class RedisPriorityScheduler extends BatchDuplicateRemovedScheduler
     }
 
     @Override
+    public int getFailCount(Task task) {
+        Long count = listOps.size(failKey(task));
+        return count == null ? 0 : count.intValue();
+    }
+
+    @Override
     public void pushFail(Request request, Task task) {
         listOps.leftPush(failKey(task), serializerRequest(request));
     }
@@ -182,6 +188,7 @@ public class RedisPriorityScheduler extends BatchDuplicateRemovedScheduler
         }
         return deserializerRequest(request);
     }
+
 
     protected String serializerRequest(Request request) {
         try {
@@ -199,19 +206,19 @@ public class RedisPriorityScheduler extends BatchDuplicateRemovedScheduler
         }
     }
 
-    private static String visitedKey(Task task) {
+    protected String visitedKey(Task task) {
         return VISITED_QUEUE_KEY + task.getUUID();
     }
 
-    private static String todoKey(Task task) {
+    protected String todoKey(Task task) {
         return TODO_QUEUE_KEY + task.getUUID();
     }
 
-    private static String detailKey(Task task) {
+    protected String detailKey(Task task) {
         return URL_DETAIL_KEY + task.getUUID();
     }
 
-    private static String failKey(Task task) {
+    protected String failKey(Task task) {
         return FAIL_QUEUE_KEY + task.getUUID();
     }
 

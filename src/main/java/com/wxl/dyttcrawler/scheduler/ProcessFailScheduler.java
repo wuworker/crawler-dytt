@@ -20,6 +20,12 @@ public interface ProcessFailScheduler extends CrawlerListener {
      */
     Request pollFail(Task task);
 
+
+    /**
+     * 总数
+     */
+    int getFailCount(Task task);
+
     /**
      * 成功
      */

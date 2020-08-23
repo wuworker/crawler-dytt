@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影管理</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/manager.css">
+    <script src="js/common.js"></script>
+    <script src="js/requests.js"></script>
+    <script src="js/manager.js"></script>
+</head>
+
+<body>
+    <div id="head"></div>
+    <p>URL消费进度:
+        <button type="button" onclick="render_process()">刷新</button>
+        <button type="button" onclick="reset_process()">重置消费进度</button>
+    </p>
+    <div style="text-align: center;">
+        <span id="todo" class="base_span">待处理数: </span>
+        <span id="total" class="base_span">已处理数: </span>
+        <span id="fail" class="base_span">处理失败数: </span>
+    </div>
+    <br>
+    <div>
+        当前状态: <span id="status">未知...</span>
+        <br><br>
+        <button id="start_btn" type="button" disabled">启动</button>
+    </div>
+    <hr>
+    <div>
+        手动保存电影详情:
+        <p>
+            <button id="save_url_btn" type="button" onclick="save_url()">保存</button>
+            <input id="url_txt" type="text" name="name" placeholder="输入需要保存的url"
+            style="width: 90%;height:20px">
+        </p>
+    </div>
+    <script>
+        $(function () {
+            $('#head').load('view/head.html', function () {
+                $('#title_h1').text("爬虫管理")
+            });
+        });
+        render_process();
+        refresh_status();
+    </script>
+</body>
+
+</html>

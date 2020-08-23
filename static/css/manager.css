@@ -1,0 +1,12 @@
+/**
+* 爬虫数据
+*/
+.base_span {
+    width: 30%;
+    height: 100px;
+    line-height: 100px;
+    border: 1px black solid;
+    display: inline-block;
+    text-align: center;
+    
+}

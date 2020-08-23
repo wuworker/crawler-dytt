@@ -7,6 +7,9 @@ SEARCH_PATH = "/dytt/search"
 // 统计请求路径
 STATISTIC_PATH = "/dytt/statistic"
 
+// 爬虫管理路径
+CRAWLER_PATH = "/dytt/crawler"
+
 /**
  * 请求成功回调
  * @param {} func 
@@ -40,6 +43,21 @@ function do_get(path, func) {
     $.ajax({
         url: path,
         type: 'GET',
+        dataType: 'json',
+        success: request_success(func),
+        error: request_error
+    });
+}
+
+/**
+ * post请求
+ * @param {*} path 
+ * @param {*} func 
+ */
+function do_post(path, func) {
+    $.ajax({
+        url: path,
+        type: 'POST',
         dataType: 'json',
         success: request_success(func),
         error: request_error
@@ -125,4 +143,66 @@ function stat_place_count(years, func) {
         years = "";
     }
     do_get(STATISTIC_PATH + "/agg/place/year?years=" + years, func);
+}
+
+
+//----------------------爬虫相关-----------------------
+/**
+ * 消费进度
+ * @param {*} func 
+ */
+function crawler_process(func) {
+    do_get(CRAWLER_PATH + "/progress", func);
+}
+
+/**
+ * 爬虫状态
+ * @param {*} func 
+ */
+function crawler_status(func) {
+    do_get(CRAWLER_PATH + "/status", func);
+}
+
+/**
+ * 启动
+ * @param {*} func 
+ */
+function crawler_start(func) {
+    do_post(CRAWLER_PATH + "/start", func);
+}
+
+
+/**
+ * 停止
+ * @param {*} func 
+ */
+function crawler_stop(func) {
+    do_post(CRAWLER_PATH + "/stop", func);
+}
+
+/**
+ * 重置消费进度
+ * @param {*} func 
+ */
+function crawler_reset(func) {
+    do_post(CRAWLER_PATH + "/reset", func);
+}
+
+/**
+ * 保存url
+ * @param {*} func 
+ * @param {*} url 
+ */
+function crawler_save_url(func, url) {
+    $.ajax({
+        url: CRAWLER_PATH + "/save",
+        type: 'POST',
+        contentType: "application/json;charset=UTF-8",
+        dataType: 'json',
+        data: JSON.stringify({
+            url: url
+        }),
+        success: request_success(func),
+        error: request_error
+    })
 }

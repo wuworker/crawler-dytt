@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wxl.dyttcrawler.scheduler.BatchScheduler;
 import com.wxl.dyttcrawler.scheduler.local.BatchHashSetDuplicateRemover;
 import com.wxl.dyttcrawler.scheduler.local.BatchPriorityScheduler;
-import com.wxl.dyttcrawler.scheduler.redis.RedisPriorityScheduler;
+import com.wxl.dyttcrawler.scheduler.redis.OperationRedisScheduler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +37,7 @@ public class SchedulerConfiguration {
     @ConditionalOnProperty(prefix = "crawler.scheduler", name = "type", havingValue = "redis")
     public BatchScheduler redisScheduler(RedisConnectionFactory redisConnectionFactory,
                                          ObjectMapper objectMapper) {
-        return new RedisPriorityScheduler(redisConnectionFactory, objectMapper);
+        return new OperationRedisScheduler(redisConnectionFactory, objectMapper);
     }
 
 }
