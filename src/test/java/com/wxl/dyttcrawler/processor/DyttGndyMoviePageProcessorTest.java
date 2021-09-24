@@ -2,7 +2,7 @@ package com.wxl.dyttcrawler.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wxl.dyttcrawler.domain.DyttMovie;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.ResultItems;

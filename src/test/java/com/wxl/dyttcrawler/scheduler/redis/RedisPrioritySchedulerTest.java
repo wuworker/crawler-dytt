@@ -2,12 +2,12 @@ package com.wxl.dyttcrawler.scheduler.redis;
 
 import com.wxl.dyttcrawler.core.Crawler;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.model.HttpRequestBody;
 
@@ -18,7 +18,7 @@ import java.util.Map;
  * Create by wuxingle on 2020/7/19
  */
 @ActiveProfiles("redis")
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 public class RedisPrioritySchedulerTest {
 

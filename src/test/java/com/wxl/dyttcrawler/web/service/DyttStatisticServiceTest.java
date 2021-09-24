@@ -5,21 +5,20 @@ import com.wxl.dyttcrawler.web.dto.statistic.BaseStatCount;
 import com.wxl.dyttcrawler.web.dto.statistic.YearMonthCount;
 import com.wxl.dyttcrawler.web.dto.statistic.YearPlaceCount;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * Create by wuxingle on 2020/7/12
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 public class DyttStatisticServiceTest {
 

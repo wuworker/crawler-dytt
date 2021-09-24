@@ -1,6 +1,6 @@
 package com.wxl.dyttcrawler.core;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import us.codecraft.webmagic.utils.UrlUtils;
 
 import java.util.regex.Matcher;

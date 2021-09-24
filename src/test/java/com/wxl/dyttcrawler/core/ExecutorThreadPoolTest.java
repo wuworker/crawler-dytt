@@ -1,8 +1,8 @@
 package com.wxl.dyttcrawler.core;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.*;
 
@@ -29,7 +29,7 @@ public class ExecutorThreadPoolTest {
         System.out.println(Thread.currentThread().getName() + ":end");
     };
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         executor = new ThreadPoolExecutor(MAX_THREAD, MAX_THREAD,
                 1, TimeUnit.MINUTES,
@@ -43,7 +43,7 @@ public class ExecutorThreadPoolTest {
         threadPool = new ExecutorThreadPool(MAX_THREAD);
     }
 
-    @AfterClass
+    @AfterAll
     public static void after() {
         executor.shutdownNow();
     }

@@ -3,6 +3,7 @@ package com.wxl.dyttcrawler.web.error;
 import com.wxl.dyttcrawler.web.dto.ResultCode;
 import com.wxl.dyttcrawler.web.dto.ResultDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.WebRequest;
@@ -16,10 +17,9 @@ import java.util.Map;
 @Slf4j
 public class DyttErrorAttributes extends DefaultErrorAttributes {
 
-
     @Override
-    public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
-        Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, includeStackTrace);
+    public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
+        Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, options);
 
         if (log.isDebugEnabled()) {
             log.debug("error message is:{}", errorAttributes);

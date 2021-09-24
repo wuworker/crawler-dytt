@@ -21,7 +21,7 @@ import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInter
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
+import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -69,7 +69,7 @@ public class DyttStatisticService {
         if (log.isDebugEnabled()) {
             log.debug("get statistic cardinality result:{}", response);
         }
-        long totalHits = response.getHits().getTotalHits();
+        long totalHits = response.getHits().getTotalHits().value;
 
         Aggregations aggregations = response.getAggregations();
         long categorySize = ((Cardinality) aggregations.get("categorySize")).getValue();

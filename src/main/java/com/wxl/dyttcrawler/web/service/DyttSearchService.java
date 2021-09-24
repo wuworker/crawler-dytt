@@ -114,7 +114,8 @@ public class DyttSearchService {
         List<DyttSimpleMovie> movies = new ArrayList<>();
 
         SearchHits hits = response.getHits();
-        long totalHits = hits.getTotalHits();
+
+        long totalHits = hits.getTotalHits().value;
         for (SearchHit hit : hits.getHits()) {
             String source = hit.getSourceAsString();
             movies.add(objectMapper.readValue(source, DyttSimpleMovie.class));

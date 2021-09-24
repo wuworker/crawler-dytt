@@ -15,25 +15,9 @@ public class EsStoreProperties {
 
     private PoolProperties pool = new PoolProperties();
 
-    private RequestProperties request = new RequestProperties();
-
-    private Duration retryTimeout = Duration.ofSeconds(5);
-
     @Data
     public static class PoolProperties {
 
         private int maxThreads = 10;
-    }
-
-    @Data
-    public static class RequestProperties {
-
-        private Duration connectTimeout = Duration.ofSeconds(5);
-
-        private Duration socketTimeout = Duration.ofSeconds(10);
-
-        private Duration connectRequestTimeout = Duration.ofSeconds(5);
-
-        private boolean compressEnabled = true;
     }
 }

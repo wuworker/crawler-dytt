@@ -5,7 +5,7 @@ import com.wxl.dyttcrawler.properties.EsStoreProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.Node;
 import org.elasticsearch.client.RestClient;
-import org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer;
+import org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,19 +29,11 @@ public class EsStoreConfiguration {
     public RestClientBuilderCustomizer clientBuilderCustomizer() {
         int maxSize = esStoreProperties.getPool().getMaxThreads();
 
-        EsStoreProperties.RequestProperties request = esStoreProperties.getRequest();
-        int connectTimeout = (int) request.getConnectTimeout().toMillis();
-        int socketTimeout = (int) request.getSocketTimeout().toMillis();
-        int connectRequestTimeout = (int) request.getConnectRequestTimeout().toMillis();
-        boolean compressEnabled = request.isCompressEnabled();
-
-        int retryTimeout = (int) esStoreProperties.getRetryTimeout().toMillis();
-
         return builder -> builder.setFailureListener(
                 new RestClient.FailureListener() {
                     @Override
                     public void onFailure(Node node) {
-                        log.error("es store fail,node is:", node);
+                        log.error("es store fail,node is:{}", node);
                     }
                 })
                 .setHttpClientConfigCallback(httpClientBuilder -> {
@@ -55,14 +47,9 @@ public class EsStoreConfiguration {
                     return httpClientBuilder;
                 })
                 .setRequestConfigCallback(requestConfigBuilder -> {
-                    requestConfigBuilder.setConnectTimeout(connectTimeout)
-                            .setSocketTimeout(socketTimeout)
-                            .setConnectionRequestTimeout(connectRequestTimeout)
-                            .setContentCompressionEnabled(compressEnabled);
+                    requestConfigBuilder.setContentCompressionEnabled(true);
                     return requestConfigBuilder;
-                })
-                .setMaxRetryTimeoutMillis(retryTimeout);
-
+                });
     }
 
 }
