@@ -69,6 +69,9 @@ public class DownloaderConfiguration {
             proxyProvider = new SimpleProxyProvider(downloadProperties.getProxies());
         }
 
+
+
+
         return new HttpClientDownloaderBuilder()
                 .httpClientGenerator(httpClientGenerator)
                 .requestConverter(new HttpUriRequestConverter())
