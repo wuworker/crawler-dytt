@@ -1,8 +1,9 @@
 spring:
   application:
     name: dytt-crawler
-  resources:
-    static-locations: file:static/
+  web:
+    resources:
+      static-locations: file:static/
   data:
     elasticsearch:
       repositories:
@@ -23,8 +24,9 @@ server:
       enabled: false
   tomcat:
     connection-timeout: 5s
-    max-threads: 100
     max-connections: 1000
+    threads:
+      max: 100
   servlet:
     application-display-name: dytt-crawler-admin
 
@@ -55,12 +57,6 @@ crawler:
     type: local
   store:
     es:
-      retry-timeout: 5s
       pool:
         max-threads: 10
-      request:
-        connect-timeout: 5s
-        socket-timeout: 10s
-        connect-request-timeout: 5s
-        compress-enabled: true
 
