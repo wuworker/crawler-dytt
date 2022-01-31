@@ -86,7 +86,7 @@ class DyttStatisticService(
 
         val sum = terms.sumOfOtherDocCounts
         val items = terms.buckets.map {
-            Pair(it.keyAsString, it.docCount)
+            TermEntry(it.keyAsString, it.docCount)
         }
 
         return TermItem(items, sum)

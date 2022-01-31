@@ -9,18 +9,6 @@ import java.util.regex.Pattern
 object DyttPattern {
 
     /**
-     * 爬取协议正则
-     */
-    @JvmField
-    val PROTOCOL_PATTERN: Pattern = Pattern.compile("http|https")
-
-    /**
-     * 爬取域名正则
-     */
-    @JvmField
-    val DOMAIN_PATTERN: Pattern = Pattern.compile("(www\\.dytt8\\.net)|(www\\.ygdy8\\.com)")
-
-    /**
      * 网站首页
      */
     @JvmField

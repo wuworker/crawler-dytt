@@ -1,7 +1,6 @@
 package com.wxl.dyttcrawler.core
 
 import com.wxl.dyttcrawler.core.DyttPattern.CATEGORY_LIST_PATH_PATTERN
-import com.wxl.dyttcrawler.core.DyttPattern.DOMAIN_PATTERN
 import com.wxl.dyttcrawler.core.DyttPattern.GNDY_DETAIL_PATH_PATTERN
 import org.junit.jupiter.api.Test
 import us.codecraft.webmagic.utils.UrlUtils
@@ -15,10 +14,6 @@ class DyttPatternTest {
 
     @Test
     fun test(){
-        println(DOMAIN_PATTERN.matcher("www.dytt8.net").matches())
-        println(DOMAIN_PATTERN.matcher("www.ygdy8.com").matches())
-        println(DOMAIN_PATTERN.matcher("www,ygdy8.com").matches())
-
         println("-----------------------")
         println(CATEGORY_LIST_PATH_PATTERN.matcher("/html/gndy/oumei/index.html").matches())
         println(CATEGORY_LIST_PATH_PATTERN.matcher("/html/gndy/oumei/").matches())

@@ -1,22 +1,28 @@
 package com.wxl.dyttcrawler.config
 
 import com.wxl.dyttcrawler.core.CrawlerListener
+import com.wxl.dyttcrawler.downloader.DyttRedirectStrategy
 import com.wxl.dyttcrawler.downloader.HttpClientDownloader
-import com.wxl.dyttcrawler.downloader.HttpClientManager
-import com.wxl.dyttcrawler.properties.CrawlerProperties
 import com.wxl.dyttcrawler.properties.HttpDownloadProperties
+import com.wxl.dyttcrawler.properties.SiteProperties
+import org.apache.http.HttpRequestInterceptor
 import org.apache.http.config.RegistryBuilder
+import org.apache.http.config.SocketConfig
 import org.apache.http.conn.socket.ConnectionSocketFactory
 import org.apache.http.conn.socket.PlainConnectionSocketFactory
 import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory
 import org.apache.http.conn.ssl.TrustAllStrategy
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler
+import org.apache.http.impl.client.HttpClients
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.ssl.SSLContextBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import us.codecraft.webmagic.Site
 import us.codecraft.webmagic.proxy.ProxyProvider
 import us.codecraft.webmagic.proxy.SimpleProxyProvider
 import java.util.*
@@ -32,7 +38,7 @@ import javax.net.ssl.SSLSocket
 @Configuration
 class DownloaderConfiguration(
     private val httpDownloadProperties: HttpDownloadProperties,
-    private val crawlerProperties: CrawlerProperties
+    private val siteProperties: SiteProperties
 ) {
 
     companion object {
@@ -44,7 +50,7 @@ class DownloaderConfiguration(
      */
     @Bean
     fun httpClientDownloader(
-        httpClientManager: HttpClientManager,
+        httpClient: CloseableHttpClient,
         crawlerListeners: ObjectProvider<CrawlerListener>
     ): HttpClientDownloader {
         var proxyProvider: ProxyProvider? = null
@@ -52,7 +58,7 @@ class DownloaderConfiguration(
             proxyProvider = SimpleProxyProvider(httpDownloadProperties.proxies)
         }
 
-        val downloader = HttpClientDownloader(httpClientManager, crawlerProperties.charset, proxyProvider)
+        val downloader = HttpClientDownloader(httpClient, siteProperties.charset, proxyProvider)
 
         val listeners = crawlerListeners.orderedStream().collect(Collectors.toList())
         downloader.addCrawlerListeners(*listeners.toTypedArray())
@@ -60,17 +66,32 @@ class DownloaderConfiguration(
     }
 
     /**
-     * httpClient管理
+     * httpClient
      */
     @Bean
-    fun httpClientManager(poolManager: PoolingHttpClientConnectionManager): HttpClientManager =
-        HttpClientManager(poolManager)
+    fun dyttHttpClient(poolManager: PoolingHttpClientConnectionManager, site: Site): CloseableHttpClient =
+        HttpClients.custom().apply {
+            setConnectionManager(poolManager)
+            if (site.userAgent != null) setUserAgent(site.userAgent) else setUserAgent("")
+            if (site.isUseGzip) {
+                addInterceptorFirst(HttpRequestInterceptor { req, _ ->
+                    if (!req.containsHeader("Accept-Encoding")) {
+                        req.addHeader("Accept-Encoding", "gzip")
+                    }
+                })
+            }
+
+            // dytt特殊的重定向策略
+            setRedirectStrategy(DyttRedirectStrategy())
+            // 重试设置
+            setRetryHandler(DefaultHttpRequestRetryHandler(site.retryTimes, true))
+        }.build()
 
     /**
      * http连接池
      */
     @Bean
-    fun poolingHttpClientConnectionManager(): PoolingHttpClientConnectionManager {
+    fun dyttPoolingHttpClientConnectionManager(): PoolingHttpClientConnectionManager {
         val registry = RegistryBuilder.create<ConnectionSocketFactory>().run {
             register("http", PlainConnectionSocketFactory.INSTANCE)
             register("https", sslConnectionSocketFactory())
@@ -78,6 +99,12 @@ class DownloaderConfiguration(
         }
 
         val poolConfig = httpDownloadProperties.pool
+
+        val socketConfig = SocketConfig.custom()
+            .setSoTimeout(siteProperties.timeout.toMinutes().toInt())
+            .setSoKeepAlive(true)
+            .setTcpNoDelay(true)
+            .build()
 
         return PoolingHttpClientConnectionManager(
             registry, null, null, null,
@@ -87,7 +114,7 @@ class DownloaderConfiguration(
             defaultMaxPerRoute = poolConfig.maxThreads
             validateAfterInactivity = poolConfig.validateAfterInactivity.toMillis().toInt()
 
-            //todo socket config connect config
+            defaultSocketConfig = socketConfig
         }
     }
 

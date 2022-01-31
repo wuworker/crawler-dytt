@@ -37,20 +37,27 @@ logging:
 
 crawler:
   task-id: ${spring.application.name}
-  first-url: "https://www.dytt8.net"
-  charset: gbk
+  start-url: "https://www.dytt8.net"
   max-threads: 1
+  allow-domains:
+    - www.dytt8.net
+    - www.dytt8.com
+    - www.ygdy8.net
+    - www.ygdy8.com
+    - www.dydytt.net
   site:
+    domain: "www.dytt8.net"
+    charset: gbk
     sleep-time: 5s
-    retry-times: 2
+    retry-times: 0
+    cycle-retry-times: 1
     retry-sleep-time: 1s
     timeout: 20s
-    disable-cookie: true
   download:
     ignore-ssl: true
     use-security: false
     pool:
-      max-threads: 5
+      max-threads: 3
       keep-alive: 1m
       validate-after-inactivity: 30s
   scheduler:

@@ -43,7 +43,7 @@ abstract class BatchDuplicateRemovedScheduler : DuplicateRemovedScheduler(), Bat
         super.getDuplicateRemover() as BatchDuplicateRemover
 
 
-    override fun setDuplicateRemover(duplicatedRemover: DuplicateRemover): BatchDuplicateRemovedScheduler {
+    final override fun setDuplicateRemover(duplicatedRemover: DuplicateRemover): BatchDuplicateRemovedScheduler {
         if (duplicatedRemover !is BatchDuplicateRemover) {
             throw IllegalStateException("DuplicateRemover must is batch impl")
         }

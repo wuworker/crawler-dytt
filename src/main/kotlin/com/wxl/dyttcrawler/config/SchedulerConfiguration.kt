@@ -35,7 +35,7 @@ class SchedulerConfiguration {
     @ConditionalOnProperty(prefix = "crawler.scheduler", name = ["type"], havingValue = "redis")
     fun redisScheduler(
         connectionFactory: RedisConnectionFactory, objectMapper: ObjectMapper
-    ): BatchScheduler {
+    ): OperationRedisScheduler {
         return OperationRedisScheduler(connectionFactory, objectMapper)
     }
 

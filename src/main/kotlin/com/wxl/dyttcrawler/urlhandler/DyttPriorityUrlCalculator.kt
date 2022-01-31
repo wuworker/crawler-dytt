@@ -50,10 +50,10 @@ class DyttPriorityUrlCalculator : PriorityUrlCalculator {
             // 首页
             INDEX_PATTERN.matcher(path).matches() -> 100
             // 详情页
-            GNDY_DETAIL_PATH_PATTERN.matcher(path).matches() -> 90
+            GNDY_DETAIL_PATH_PATTERN.matcher(path).matches() -> 100
             // 列表页
-            GNDY_INDEX_PATTERN.matcher(path).matches() -> 70
-            CATEGORY_LIST_PATH_PATTERN.matcher(path).matches() -> 70
+            GNDY_INDEX_PATTERN.matcher(path).matches() -> 50
+            CATEGORY_LIST_PATH_PATTERN.matcher(path).matches() -> 50
 
             else -> 30
         }

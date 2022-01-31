@@ -57,6 +57,9 @@ private val PLACE_PATTERN = Pattern.compile("[\\u4e00-\\u9fa5]+")
 private val DATE_DAY_FORMATTER1 = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 private val DATE_DAY_FORMATTER2 = DateTimeFormatter.ofPattern("yyyy-MM")
 
+// 404
+private val ERROR_HTML_TITLE = "电影天堂--您的访问出错了!-电影天堂网！"
+
 @Order(0)
 @Component
 class DyttGndyMoviePageProcessor(
@@ -67,6 +70,13 @@ class DyttGndyMoviePageProcessor(
     private val linkStarts = listOf("ftp", "magnet")
 
     override fun process(page: Page) {
+        // 404
+        val htmlTitle = page.html.xpath("/html/head/title").get()
+        if (htmlTitle.contains(ERROR_HTML_TITLE)) {
+            page.setSkip(true)
+            return
+        }
+
         val matcher = GNDY_DETAIL_PATH_PATTERN.matcher(page.url.get())
         if (!matcher.find()) {
             page.setSkip(true)
@@ -112,8 +122,10 @@ class DyttGndyMoviePageProcessor(
         val contentDiv = root.css("div#Zoom span div").all()
         if (contentDiv.isEmpty()) {
             // 封面地址
-            val p = root.css("div#Zoom span p")
-
+            var p = root.css("div#Zoom span p")
+            if (p.get() == null) {
+                p = root.css("div#Zoom span")
+            }
             val picUrl = p.css("img[src]", "src").get()
             movie.picUrl = picUrl
 

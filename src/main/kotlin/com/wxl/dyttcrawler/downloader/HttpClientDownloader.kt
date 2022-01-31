@@ -3,12 +3,12 @@ package com.wxl.dyttcrawler.downloader
 import com.wxl.dyttcrawler.core.CrawlerListener
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.util.EntityUtils
 import org.slf4j.LoggerFactory
 import us.codecraft.webmagic.Page
 import us.codecraft.webmagic.Request
 import us.codecraft.webmagic.Task
-import us.codecraft.webmagic.downloader.Downloader
 import us.codecraft.webmagic.downloader.HttpUriRequestConverter
 import us.codecraft.webmagic.proxy.ProxyProvider
 import us.codecraft.webmagic.selector.PlainText
@@ -22,11 +22,11 @@ import java.nio.charset.Charset
  * httpClient下载
  */
 open class HttpClientDownloader(
-    private val httpClientManager: HttpClientManager,
+    private val httpClient: CloseableHttpClient,
     private val defaultCharset: String,
     private val proxyProvider: ProxyProvider? = null,
     private val httpUriRequestConverter: HttpUriRequestConverter = HttpUriRequestConverter()
-) : Downloader {
+) : HttpDownloader {
 
     private val crawlerListeners = mutableListOf<CrawlerListener>()
 
@@ -36,11 +36,7 @@ open class HttpClientDownloader(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    override fun download(request: Request?, task: Task?): Page {
-        if (request == null || task == null) {
-            throw NullPointerException("task or site can not be null")
-        }
-        val httpClient = httpClientManager.getHttpClient(task.site)
+    override fun download(request: Request, task: Task): Page {
         val proxy = proxyProvider?.getProxy(task)
         val requestCtx = httpUriRequestConverter.convert(request, task.site, proxy)
         var page = Page.fail()
@@ -66,10 +62,6 @@ open class HttpClientDownloader(
                 proxyProvider.returnProxy(proxy, page, task)
             }
         }
-    }
-
-    override fun setThread(threadNum: Int) {
-        httpClientManager.setPoolSize(threadNum)
     }
 
     /**

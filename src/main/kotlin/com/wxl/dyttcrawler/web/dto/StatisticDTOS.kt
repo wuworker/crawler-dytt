@@ -88,8 +88,11 @@ data class YearPlaceCount(
  * term结果
  */
 data class TermItem<K, V>(
-    var items: List<Pair<K, V>> = emptyList(),
+    var items: List<TermEntry<K, V>> = emptyList(),
     var otherSize: Long = 0
 )
 
-
+data class TermEntry<K, V>(
+    var key: K,
+    var value: V
+)

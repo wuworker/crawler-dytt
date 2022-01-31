@@ -1,5 +1,6 @@
 package com.wxl.dyttcrawler.processor
 
+import org.slf4j.LoggerFactory
 import us.codecraft.webmagic.Page
 import us.codecraft.webmagic.Site
 import us.codecraft.webmagic.processor.PageProcessor
@@ -13,8 +14,15 @@ class ProcessorDispatcher(
     private val processors: List<DyttProcessor>
 ) : PageProcessor {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(this::class.java)
+    }
+
     override fun process(page: Page) {
         val processor = getProcessor(page)
+        if (processor == null) {
+            log.debug("ignore page:{}", page.url)
+        }
         processor?.process(page)
     }
 

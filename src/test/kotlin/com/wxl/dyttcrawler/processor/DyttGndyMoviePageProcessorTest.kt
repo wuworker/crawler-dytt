@@ -2,13 +2,8 @@ package com.wxl.dyttcrawler.processor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wxl.dyttcrawler.domain.DyttMovie
+import com.wxl.dyttcrawler.downloadPage
 import org.junit.jupiter.api.Test
-import us.codecraft.webmagic.Page
-import us.codecraft.webmagic.Request
-import us.codecraft.webmagic.selector.PlainText
-import java.nio.charset.Charset
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.ZoneId
 import java.util.*
 
@@ -21,37 +16,32 @@ class DyttGndyMoviePageProcessorTest {
     @Test
     fun test1() {
         process(
-            "https://www.dytt8.net/html/gndy/dyzz/20200506/59996.html",
-            "src/test/resources/detail1.html"
+            "https://www.dytt8.net/html/gndy/dyzz/20200506/59996.html"
         )
     }
 
     @Test
     fun test2() {
         process(
-            "https://www.dytt8.net/html/gndy/dyzz/20200608/60105.html",
-            "src/test/resources/detail2.html"
+            "https://www.dytt8.net/html/gndy/dyzz/20200608/60105.html"
         )
     }
 
-    private fun process(urlStr: String, html: String) {
-        val req = Request().apply {
-            url = urlStr
-            charset = "utf-8"
-            method = "get"
-        }
+    @Test
+    fun test3() {
+        process(
+            "https://www.dytt8.net/html/gndy/jddy/20220130/62267.html"
+        )
+    }
 
-        val page = Page().apply {
-            val htmlBytes = Files.readAllBytes(Paths.get(html))
+    @Test
+    fun test4() {
+        process("https://dydytt.net/gndy/dyzz/20220103/62184.html")
+    }
 
-            bytes = htmlBytes
-            request = req
-            url = PlainText(urlStr)
-            isDownloadSuccess = true
-            charset = "utf-8"
-            rawText = String(htmlBytes, Charset.forName("utf-8"))
-            statusCode = 200
-        }
+    private fun process(urlStr: String) {
+        val page = downloadPage(urlStr)
+        println(page.html)
 
         val processor = DyttGndyMoviePageProcessor(
             { _, _ -> 10 }, { true }
@@ -66,8 +56,10 @@ class DyttGndyMoviePageProcessorTest {
             setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()))
         }
 
-        println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(movie))
-        println(movie.desc)
+        if (movie != null) {
+            println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(movie))
+            println(movie.desc)
+        }
     }
 
 

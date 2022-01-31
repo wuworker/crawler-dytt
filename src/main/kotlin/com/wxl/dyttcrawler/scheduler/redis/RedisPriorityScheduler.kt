@@ -18,7 +18,7 @@ import us.codecraft.webmagic.scheduler.MonitorableScheduler
  */
 open class RedisPriorityScheduler(
     connectionFactory: RedisConnectionFactory,
-    val objectMapper: ObjectMapper = ObjectMapper()
+    private val objectMapper: ObjectMapper = ObjectMapper()
 ) : BatchDuplicateRemovedScheduler(),
     MonitorableScheduler, BatchDuplicateRemover, ProcessFailScheduler {
 
@@ -109,10 +109,9 @@ open class RedisPriorityScheduler(
     }
 
     override fun poll(task: Task): Request? {
-        val request = template.execute(pollScript, listOf(todoKey(task), detailKey(task)))
-        if (request == null) {
-            return null
-        }
+        val request =
+            (template as RedisOperations<String, String>).execute(pollScript, listOf(todoKey(task), detailKey(task)))
+                ?: return null
         return deserializerRequest(request)
     }
 
@@ -133,7 +132,7 @@ open class RedisPriorityScheduler(
         }
 
         val filterRequests = mutableListOf<Request>()
-        for (i in 0..requests.size) {
+        for (i in requests.indices) {
             if (result[i] == 1L) {
                 filterRequests.add(requests[i])
             }

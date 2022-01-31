@@ -1,6 +1,7 @@
 package com.wxl.dyttcrawler.core
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.wxl.dyttcrawler.downloader.HttpDownloader
 import com.wxl.dyttcrawler.scheduler.BatchScheduler
 import org.apache.commons.lang3.SerializationUtils
 import org.slf4j.LoggerFactory
@@ -8,7 +9,6 @@ import us.codecraft.webmagic.Page
 import us.codecraft.webmagic.Request
 import us.codecraft.webmagic.Site
 import us.codecraft.webmagic.Task
-import us.codecraft.webmagic.downloader.Downloader
 import us.codecraft.webmagic.pipeline.Pipeline
 import us.codecraft.webmagic.processor.PageProcessor
 import us.codecraft.webmagic.scheduler.Scheduler
@@ -47,7 +47,7 @@ enum class CrawlerStatus(val value: Int) {
 class Crawler private constructor(
     private val taskId: String,
     private val pageProcessor: PageProcessor,
-    private val downloader: Downloader,
+    private val downloader: HttpDownloader,
     private val pipelines: List<Pipeline>,
     private val scheduler: Scheduler,
     private val threadPool: ThreadPool,
@@ -72,7 +72,7 @@ class Crawler private constructor(
         /**
          * 页面下载
          */
-        lateinit var downloader: Downloader
+        lateinit var downloader: HttpDownloader
 
         /**
          * 结果处理
@@ -105,12 +105,13 @@ class Crawler private constructor(
         var crawlerListeners: MutableList<CrawlerListener> = mutableListOf()
 
         fun build(): Crawler {
+            val listeners = crawlerListeners.toTypedArray()
             return Crawler(
                 taskId, pageProcessor, downloader,
                 pipelines, scheduler, threadPool,
                 startRequests, exitWhenComplete
             ).apply {
-                addCrawlerListener(*crawlerListeners.toTypedArray())
+                addCrawlerListener(*listeners)
             }
         }
     }
@@ -176,7 +177,7 @@ class Crawler private constructor(
     /**
      * 异步启动
      */
-    fun start(maxCount: Long = Long.MAX_VALUE): Boolean {
+    fun start(maxCount: Long = Long.MAX_VALUE, async: Boolean = true): Boolean {
         while (true) {
             val statNow = stat.get()
             if (statNow == CrawlerStatus.RUNNING) {
@@ -194,9 +195,19 @@ class Crawler private constructor(
                 break
             }
         }
-        crawlerFuture = crawlerExecutor.submit {
+        if (async) {
+            crawlerFuture = crawlerExecutor.submit {
+                try {
+                    doCrawlerSpin(maxCount)
+                } catch (e: Exception) {
+                    log.error("crawler happen error!", e)
+                    stat.set(CrawlerStatus.STOPPED)
+                }
+            }
+        } else {
             doCrawlerSpin(maxCount)
         }
+
         return true
     }
 

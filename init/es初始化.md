@@ -1,7 +1,13 @@
-# es
+# es7.10
 
-## 
+## 一、依赖插件
+pinyin
+ik
+
+## 二、数据结构
+
 PUT /dytt
+
 ```json
 {
   "settings": {
@@ -44,126 +50,124 @@ PUT /dytt
         "len_filter": {
           "type": "length",
           "min": 2,
-          "max":8
+          "max": 8
         }
       }
     }
   },
   "mappings": {
-    "_doc": {
-      "properties": {
-        "act": {
-          "type": "text",
-          "analyzer": "english",
-          "fields": {
-            "pinyin": {
-              "type": "text",
-              "analyzer": "pinyin_analyzer"
-            }
+    "properties": {
+      "act": {
+        "type": "text",
+        "analyzer": "english",
+        "fields": {
+          "pinyin": {
+            "type": "text",
+            "analyzer": "pinyin_analyzer"
           }
-        },
-        "awards": {
-          "type": "text",
-          "analyzer":"ik_max_word",
-          "search_analyzer":"ik_smart"
-        },
-        "category": {
-          "type": "keyword"
-        },
-        "desc": {
-          "type": "text",
-          "index": false
-        },
-        "director": {
-          "type": "text",
-          "analyzer": "english",
-          "fields": {
-            "pinyin": {
-              "type": "text",
-              "analyzer": "pinyin_analyzer"
-            }
-          }
-        },
-        "downLinks": {
-          "type": "text",
-          "index": "false"
-        },
-        "fileSize": {
-          "type": "double"
-        },
-        "id": {
-          "type": "keyword"
-        },
-        "language": {
-          "type": "keyword"
-        },
-        "name": {
-          "type": "text",
-          "analyzer":"ik_max_word",
-          "search_analyzer":"ik_smart"
-        },
-        "originPlace": {
-          "type": "keyword"
-        },
-        "picUrl": {
-          "type": "text",
-          "index": false
-        },
-        "publishDate": {
-          "type": "date"
-        },
-        "releaseDates": {
-          "properties": {
-            "date": {
-              "type": "date"
-            },
-            "place": {
-              "type": "keyword"
-            }
-          }
-        },
-        "score": {
-          "type": "double"
-        },
-        "scoreNums": {
-          "type": "integer"
-        },
-        "screenwriter": {
-          "type": "text",
-          "analyzer": "english",
-          "fields": {
-            "pinyin": {
-              "type": "text",
-              "analyzer": "pinyin_analyzer"
-            }
-          }
-        },
-        "tags": {
-          "type": "keyword"
-        },
-        "title": {
-          "type": "text",
-          "analyzer":"ik_max_word",
-          "search_analyzer":"ik_smart"
-        },
-        "translateNames": {
-          "type": "text",
-          "analyzer":"ik_max_word",
-          "search_analyzer":"ik_smart"
-        },
-        "url": {
-          "type": "text",
-          "index": false
-        },
-        "words": {
-          "type": "keyword"
-        },
-        "year": {
-          "type": "integer"
-        },
-        "updateTime": {
-          "type": "date"
         }
+      },
+      "awards": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "desc": {
+        "type": "text",
+        "index": false
+      },
+      "director": {
+        "type": "text",
+        "analyzer": "english",
+        "fields": {
+          "pinyin": {
+            "type": "text",
+            "analyzer": "pinyin_analyzer"
+          }
+        }
+      },
+      "downLinks": {
+        "type": "text",
+        "index": "false"
+      },
+      "fileSize": {
+        "type": "double"
+      },
+      "id": {
+        "type": "keyword"
+      },
+      "language": {
+        "type": "keyword"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
+      },
+      "originPlace": {
+        "type": "keyword"
+      },
+      "picUrl": {
+        "type": "text",
+        "index": false
+      },
+      "publishDate": {
+        "type": "date"
+      },
+      "releaseDates": {
+        "properties": {
+          "date": {
+            "type": "date"
+          },
+          "place": {
+            "type": "keyword"
+          }
+        }
+      },
+      "score": {
+        "type": "double"
+      },
+      "scoreNums": {
+        "type": "integer"
+      },
+      "screenwriter": {
+        "type": "text",
+        "analyzer": "english",
+        "fields": {
+          "pinyin": {
+            "type": "text",
+            "analyzer": "pinyin_analyzer"
+          }
+        }
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
+      },
+      "translateNames": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
+      },
+      "url": {
+        "type": "text",
+        "index": false
+      },
+      "words": {
+        "type": "keyword"
+      },
+      "year": {
+        "type": "integer"
+      },
+      "updateTime": {
+        "type": "date"
       }
     }
   }
