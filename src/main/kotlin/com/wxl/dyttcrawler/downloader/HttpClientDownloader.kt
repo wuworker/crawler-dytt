@@ -1,6 +1,5 @@
 package com.wxl.dyttcrawler.downloader
 
-import com.wxl.dyttcrawler.core.CrawlerListener
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.impl.client.CloseableHttpClient
@@ -28,12 +27,10 @@ open class HttpClientDownloader(
     private val httpUriRequestConverter: HttpUriRequestConverter = HttpUriRequestConverter()
 ) : HttpDownloader {
 
-    private val crawlerListeners = mutableListOf<CrawlerListener>()
-
     var responseHeader = false
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(HttpClientDownloader::class.java)
     }
 
     override fun download(request: Request, task: Task): Page {
@@ -87,30 +84,9 @@ open class HttpClientDownloader(
         }
     }
 
-    protected fun onSuccess(request: Request, task: Task) {
-        for (crawlerListener in crawlerListeners) {
-            try {
-                crawlerListener.onSuccess(request, task)
-            } catch (e: Exception) {
-                log.error("download on success process error:{}", request, e)
-            }
-        }
-    }
+    protected fun onSuccess(request: Request, task: Task) {}
 
-    protected fun onError(request: Request, task: Task) {
-        for (crawlerListener in crawlerListeners) {
-            try {
-                crawlerListener.onError(request, task)
-            } catch (e: Exception) {
-                log.error("download on error process error:{}", request, e)
-            }
-        }
-    }
-
-    /**
-     * 添加监听
-     */
-    fun addCrawlerListeners(vararg listeners: CrawlerListener) = crawlerListeners.addAll(listeners)
+    protected fun onError(request: Request, task: Task) {}
 
     private fun getHtmlCharset(contentType: String, contentBytes: ByteArray): String {
         var charset = CharsetUtils.detectCharset(contentType, contentBytes)

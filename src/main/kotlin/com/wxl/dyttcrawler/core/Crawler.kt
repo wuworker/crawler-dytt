@@ -1,9 +1,9 @@
 package com.wxl.dyttcrawler.core
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.wxl.dyttcrawler.downloader.HttpDownloader
 import com.wxl.dyttcrawler.scheduler.BatchScheduler
-import org.apache.commons.lang3.SerializationUtils
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import org.slf4j.LoggerFactory
 import us.codecraft.webmagic.Page
 import us.codecraft.webmagic.Request
@@ -18,7 +18,6 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Create by wuxingle on 2021/10/09
@@ -50,9 +49,10 @@ class Crawler private constructor(
     private val downloader: HttpDownloader,
     private val pipelines: List<Pipeline>,
     private val scheduler: Scheduler,
-    private val threadPool: ThreadPool,
+    private val coroutineScope: CoroutineScope,
     private val startRequests: List<Request>,
     private val exitWhenComplete: Boolean = false,
+    private val concurrentNums: Int = 1
 ) : Closeable, Task {
 
     /**
@@ -85,9 +85,9 @@ class Crawler private constructor(
         lateinit var scheduler: Scheduler
 
         /**
-         * 执行线程池
+         * 协程scope
          */
-        lateinit var threadPool: ThreadPool
+        lateinit var coroutineScope: CoroutineScope
 
         /**
          * 开始的请求
@@ -100,6 +100,11 @@ class Crawler private constructor(
         var exitWhenComplete: Boolean = false
 
         /**
+         * 并发度
+         */
+        var concurrentNums: Int = 1
+
+        /**
          * 监听器
          */
         var crawlerListeners: MutableList<CrawlerListener> = mutableListOf()
@@ -108,8 +113,8 @@ class Crawler private constructor(
             val listeners = crawlerListeners.toTypedArray()
             return Crawler(
                 taskId, pageProcessor, downloader,
-                pipelines, scheduler, threadPool,
-                startRequests, exitWhenComplete
+                pipelines, scheduler, coroutineScope,
+                startRequests, exitWhenComplete, concurrentNums
             ).apply {
                 addCrawlerListener(*listeners)
             }
@@ -129,13 +134,6 @@ class Crawler private constructor(
     /****************************************内部状态*****************************************************/
 
     /**
-     * 锁
-     */
-    private val lock = ReentrantLock()
-
-    private val condition = lock.newCondition()
-
-    /**
      * 状态
      */
     private val stat: AtomicReference<CrawlerStatus> = AtomicReference(CrawlerStatus.INIT)
@@ -146,21 +144,15 @@ class Crawler private constructor(
     private val pageCount = AtomicLong(0)
 
     /**
-     * 爬虫主线程池
+     * 并发控制channel
      */
-    private val crawlerExecutor: ExecutorService = ThreadPoolExecutor(
-        0, 1, 10, TimeUnit.MINUTES, SynchronousQueue(),
-        ThreadFactoryBuilder().setNameFormat("crawler-worker-%s").setDaemon(true).build()
-    )
+    private val concurrentChannel = Channel<Int>(concurrentNums)
 
-    /**
-     * 爬虫主线程future
-     */
     @Volatile
-    private var crawlerFuture: Future<*>? = null
+    private var crawlerJob: Job? = null
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(Crawler::class.java)
 
         /**
          * 带接收者的函数类型
@@ -177,7 +169,7 @@ class Crawler private constructor(
     /**
      * 异步启动
      */
-    fun start(maxCount: Long = Long.MAX_VALUE, async: Boolean = true): Boolean {
+    fun start(): Boolean {
         while (true) {
             val statNow = stat.get()
             if (statNow == CrawlerStatus.RUNNING) {
@@ -195,37 +187,84 @@ class Crawler private constructor(
                 break
             }
         }
-        if (async) {
-            crawlerFuture = crawlerExecutor.submit {
-                try {
-                    doCrawlerSpin(maxCount)
-                } catch (e: Exception) {
-                    log.error("crawler happen error!", e)
-                    stat.set(CrawlerStatus.STOPPED)
-                }
-            }
-        } else {
-            doCrawlerSpin(maxCount)
-        }
+
+        crawlerJob = newCrawlerJob()
+        crawlerJob!!.start()
 
         return true
     }
 
     /**
-     * 异步停止
+     * 创建新的爬虫任务
      */
-    fun stop(): Boolean = stat.compareAndSet(CrawlerStatus.RUNNING, CrawlerStatus.STOPPING)
+    private fun newCrawlerJob(): Job =
+        coroutineScope.launch(CoroutineName("cp"), start = CoroutineStart.LAZY) {
+            try {
+                log.info("crawler {} started!", uuid)
+                while (isActive && stat.get() == CrawlerStatus.RUNNING) {
+                    val request = scheduler.poll(this@Crawler)
+                    if (request == null) {
+                        val emptyChildrenJob = coroutineContext.job.children.iterator().hasNext()
+                        if (emptyChildrenJob && concurrentChannel.isEmpty && exitWhenComplete) {
+                            log.info("crawler {} execute complete by empty request", uuid)
+                            break
+                        }
+                        delay(1000)
+                    } else {
+                        log.debug("crawler {} wait download: {}", uuid, request.url)
+                        concurrentChannel.send(0)
 
-    /**
-     * 等待执行结束
-     */
-    @Throws(InterruptedException::class)
-    fun awaitStopped() {
-        if (crawlerFuture != null) {
-            while (!crawlerFuture!!.isDone && !crawlerFuture!!.isCancelled) {
-                Thread.sleep(5000)
+                        launch(CoroutineName("ch")) {
+                            try {
+                                processRequest(request)
+                                delay(site.sleepTime.toLong())
+                            } finally {
+                                concurrentChannel.receive()
+                            }
+                        }
+                    }
+                }
+
+                // 等待处理完成
+                for (child in coroutineContext.job.children) {
+                    child.join()
+                }
+                log.info("crawler {} closed! {} pages downloaded.", uuid, pageCount.get())
+
+            } finally {
+                stat.set(CrawlerStatus.STOPPED)
             }
         }
+
+    /**
+     * 请求处理
+     */
+    private fun processRequest(request: Request) {
+        try {
+            val page = downloader.download(request, this@Crawler)
+            if (page.isDownloadSuccess) {
+                onDownloadSuccess(request, page)
+            } else {
+                onDownloaderFail(request)
+            }
+        } catch (e: Exception) {
+            notifyError(request, e)
+            log.error("process request {} error", request, e)
+        } finally {
+            pageCount.incrementAndGet()
+        }
+    }
+
+    /**
+     * 异步停止
+     */
+    fun stop() = stat.compareAndSet(CrawlerStatus.RUNNING, CrawlerStatus.STOPPING)
+
+    /**
+     * 等待停止
+     */
+    fun awaitStopped() = runBlocking {
+        crawlerJob?.join()
     }
 
     /**
@@ -246,16 +285,11 @@ class Crawler private constructor(
 
     override fun close() {
         stop()
-        try {
-            awaitStopped()
-        } catch (e: InterruptedException) {
-            //ignore
+        awaitStopped()
+        runBlocking {
+            concurrentChannel.close()
         }
-        try {
-            threadPool.shutdown()
-        } catch (e: InterruptedException) {
-            //ignore
-        }
+
         for (pipeline in pipelines) {
             destroyEach(pipeline)
         }
@@ -265,115 +299,12 @@ class Crawler private constructor(
     }
 
     private fun destroyEach(obj: Any) {
-        if (obj is ExecutorService) {
-            try {
-                obj.shutdown()
-                while (!obj.isTerminated) {
-                    obj.awaitTermination(5, TimeUnit.SECONDS)
-                }
-            } catch (e: InterruptedException) {
-                log.error("threadPoll {} has interrupt", obj)
-            }
-        } else if (obj is Closeable) {
+        if (obj is Closeable) {
             try {
                 obj.close()
             } catch (e: IOException) {
                 log.error("close {} has error", obj, e)
             }
-        }
-    }
-
-    /**
-     * 爬虫执行逻辑
-     *
-     * @param maxCount 最大爬取页面数
-     */
-    private fun doCrawlerSpin(maxCount: Long) {
-        log.info("crawler {} started!", uuid)
-        var count = 0
-        val startIndex = pageCount.get()
-        while (!Thread.currentThread().isInterrupted
-            && stat.get() == CrawlerStatus.RUNNING
-            && count++ < maxCount
-        ) {
-            val request = scheduler.poll(this)
-            if (request == null) {
-                if (threadPool.activeThreadNum == 0 && exitWhenComplete) {
-                    break
-                }
-                // wait until new url added
-                await(WAIT_NEW_URL_CHECK_TIME)
-                count--
-            } else {
-                try {
-                    threadPool.execute {
-                        processRequest(request)
-                    }
-                } catch (e: InterruptedException) {
-                    log.info("submit process request task is interrupted");
-                    addRequest(request)
-                    Thread.currentThread().interrupt()
-                    break
-                }
-            }
-        }
-
-        while (!Thread.currentThread().isInterrupted
-            && threadPool.activeThreadNum != 0
-            && pageCount.get() - startIndex < maxCount
-        ) {
-            await(5000)
-        }
-
-        log.info("crawler {} closed! {} pages downloaded.", uuid, pageCount.get())
-        stat.set(CrawlerStatus.STOPPED)
-    }
-
-    /**
-     * wait
-     */
-    private fun await(timeout: Long) {
-        lock.lock()
-        try {
-            condition.await(timeout, TimeUnit.MICROSECONDS)
-        } catch (e: InterruptedException) {
-            log.info("wait is interrupted")
-            Thread.currentThread().interrupt()
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    /**
-     * notify
-     */
-    private fun signalAll() {
-        lock.lock()
-        try {
-            condition.signalAll()
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    /**
-     * 请求处理
-     */
-    private fun processRequest(request: Request) {
-        try {
-            val page = downloader.download(request, this)
-            if (page.isDownloadSuccess) {
-                onDownloadSuccess(request, page)
-            } else {
-                onDownloaderFail(request)
-            }
-            notifySuccess(request)
-        } catch (e: Exception) {
-            notifyError(request)
-            log.error("process request {} error", request, e)
-        } finally {
-            pageCount.incrementAndGet()
-            signalAll()
         }
     }
 
@@ -391,47 +322,19 @@ class Crawler private constructor(
                     pipeline.process(page.resultItems, this)
                 }
             }
+            notifySuccess(request)
         } else {
             log.info("page status code error, page {} , code: {}", request.url, page.statusCode)
+            notifyError(request)
         }
-        sleep(site.sleepTime)
     }
 
     /**
      * 失败处理
      */
     private fun onDownloaderFail(request: Request) {
-        if (site.cycleRetryTimes == 0) {
-            sleep(site.sleepTime)
-        } else {
-            // for cycle retry
-            doCycleRetry(request)
-        }
-    }
-
-    private fun doCycleRetry(request: Request) {
-        val cycleTriedTimesObject = request.getExtra(Request.CYCLE_TRIED_TIMES)
-        if (cycleTriedTimesObject == null) {
-            addRequest(SerializationUtils.clone(request).setPriority(0).putExtra(Request.CYCLE_TRIED_TIMES, 1))
-        } else {
-            var cycleTriedTimes = cycleTriedTimesObject as Int
-            cycleTriedTimes++
-            if (cycleTriedTimes < site.cycleRetryTimes) {
-                addRequest(
-                    SerializationUtils.clone(request).setPriority(0)
-                        .putExtra(Request.CYCLE_TRIED_TIMES, cycleTriedTimes)
-                )
-            }
-        }
-        sleep(site.retrySleepTime)
-    }
-
-    private fun sleep(time: Int) {
-        try {
-            Thread.sleep(time.toLong())
-        } catch (e: InterruptedException) {
-            log.info("crawler sleep is interrupted")
-        }
+        log.info("page download fail, page {}", request.url)
+        notifyError(request)
     }
 
     /**
@@ -450,25 +353,21 @@ class Crawler private constructor(
     }
 
     private fun notifySuccess(request: Request) {
-        if (crawlerListeners.isNotEmpty()) {
-            for (crawlerListener in crawlerListeners) {
-                try {
-                    crawlerListener.onSuccess(request, this)
-                } catch (e: Exception) {
-                    log.error("crawler on success process error:{}", request, e)
-                }
+        for (crawlerListener in crawlerListeners) {
+            try {
+                crawlerListener.onSuccess(request, this)
+            } catch (e: Exception) {
+                log.error("crawler on success process error:{}", request, e)
             }
         }
     }
 
-    private fun notifyError(request: Request) {
-        if (crawlerListeners.isNotEmpty()) {
-            for (crawlerListener in crawlerListeners) {
-                try {
-                    crawlerListener.onError(request, this)
-                } catch (e: Exception) {
-                    log.error("crawler on error process error:{}", request, e)
-                }
+    private fun notifyError(request: Request, e: Exception? = null) {
+        for (crawlerListener in crawlerListeners) {
+            try {
+                crawlerListener.onError(request, this, e)
+            } catch (e: Exception) {
+                log.error("crawler on error process error:{}", request, e)
             }
         }
     }

@@ -51,6 +51,4 @@ object ElasticConstants {
 
     const val DYTT_INDEX: String = "dytt"
 
-    const val DYTT_TYPE: String = "_doc"
-
 }

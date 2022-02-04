@@ -140,11 +140,11 @@ class DyttGndyMoviePageProcessor(
             for (div in contentDiv) {
                 val doc = Jsoup.parse(div)
                 val img = doc.select("img[src]").first()
-                if (!findPic && img != null) {
+                if (!findPic && img !== null) {
                     val src = img.attr("src")
                     movie.picUrl = src
                     findPic = true
-                } else if (img == null) {
+                } else if (img === null) {
                     nodes.add(wordFilter(doc.text()))
                 } else {
                     break

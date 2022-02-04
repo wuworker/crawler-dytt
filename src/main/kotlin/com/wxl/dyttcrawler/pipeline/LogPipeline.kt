@@ -14,7 +14,7 @@ import us.codecraft.webmagic.Task
 class LogPipeline : DyttPipeline<DyttMovie>(DyttMovie::class.java) {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(LogPipeline::class.java)
     }
 
     override fun process(obj: DyttMovie, resultItems: ResultItems, task: Task) {

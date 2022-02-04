@@ -19,7 +19,7 @@ class EsStoreConfiguration(
 ) {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(EsStoreConfiguration::class.java)
     }
 
     @Bean

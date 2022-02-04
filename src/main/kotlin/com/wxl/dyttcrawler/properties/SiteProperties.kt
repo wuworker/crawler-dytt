@@ -14,10 +14,7 @@ data class SiteProperties(
     var userAgent: String? = null,
     var sleepTime: Duration = Duration.ofSeconds(1),
     //httpclient重试
-    var retryTimes: Int = 0,
-    // 爬虫重试次数
-    var cycleRetryTimes: Int = 1,
-    var retrySleepTime: Duration = Duration.ofSeconds(1),
+    var retryTimes: Int = 1,
     var timeout: Duration = Duration.ofSeconds(10),
     var acceptStatusCode: List<Int> = listOf(200),
     var headers: Map<String, String> = emptyMap(),

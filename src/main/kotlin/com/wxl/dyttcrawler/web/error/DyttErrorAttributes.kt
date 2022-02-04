@@ -15,7 +15,7 @@ import org.springframework.web.context.request.WebRequest
 class DyttErrorAttributes : DefaultErrorAttributes() {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(DyttErrorAttributes::class.java)
     }
 
     override fun getErrorAttributes(webRequest: WebRequest, options: ErrorAttributeOptions): MutableMap<String, Any?> {

@@ -1,6 +1,5 @@
 package com.wxl.dyttcrawler.config
 
-import com.wxl.dyttcrawler.core.CrawlerListener
 import com.wxl.dyttcrawler.downloader.DyttRedirectStrategy
 import com.wxl.dyttcrawler.downloader.HttpClientDownloader
 import com.wxl.dyttcrawler.properties.HttpDownloadProperties
@@ -19,7 +18,6 @@ import org.apache.http.impl.client.HttpClients
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.ssl.SSLContextBuilder
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import us.codecraft.webmagic.Site
@@ -27,7 +25,6 @@ import us.codecraft.webmagic.proxy.ProxyProvider
 import us.codecraft.webmagic.proxy.SimpleProxyProvider
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
 
@@ -51,18 +48,13 @@ class DownloaderConfiguration(
     @Bean
     fun httpClientDownloader(
         httpClient: CloseableHttpClient,
-        crawlerListeners: ObjectProvider<CrawlerListener>
     ): HttpClientDownloader {
         var proxyProvider: ProxyProvider? = null
         if (httpDownloadProperties.proxies.isNotEmpty()) {
             proxyProvider = SimpleProxyProvider(httpDownloadProperties.proxies)
         }
 
-        val downloader = HttpClientDownloader(httpClient, siteProperties.charset, proxyProvider)
-
-        val listeners = crawlerListeners.orderedStream().collect(Collectors.toList())
-        downloader.addCrawlerListeners(*listeners.toTypedArray())
-        return downloader
+        return HttpClientDownloader(httpClient, siteProperties.charset, proxyProvider)
     }
 
     /**

@@ -27,7 +27,7 @@ class DyttSearchService(
 
     companion object {
 
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(DyttSearchService::class.java)
 
         private val SEARCH_FIELDS = arrayOf(
             "id", "title", "url", "picUrl", "name", "year", "originPlace", "category", "score", "tags"

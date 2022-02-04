@@ -34,7 +34,7 @@ interface ProcessFailScheduler : CrawlerListener {
     /**
      * 失败处理
      */
-    override fun onError(request: Request, task: Task) {
+    override fun onError(request: Request, task: Task, e: Exception?) {
         pushFail(request, task)
     }
 

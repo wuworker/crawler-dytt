@@ -15,7 +15,7 @@ class ProcessorDispatcher(
 ) : PageProcessor {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(ProcessorDispatcher::class.java)
     }
 
     override fun process(page: Page) {

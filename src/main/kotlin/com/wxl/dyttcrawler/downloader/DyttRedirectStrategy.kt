@@ -16,7 +16,7 @@ import java.net.URI
 class DyttRedirectStrategy : LaxRedirectStrategy() {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(DyttRedirectStrategy::class.java)
     }
 
     override fun isRedirected(request: HttpRequest, response: HttpResponse, context: HttpContext): Boolean {

@@ -1,14 +1,15 @@
 package com.wxl.dyttcrawler.config
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.wxl.dyttcrawler.core.Crawler
+import com.wxl.dyttcrawler.core.CrawlerCoroutineScope
 import com.wxl.dyttcrawler.core.CrawlerListener
-import com.wxl.dyttcrawler.core.ExecutorThreadPool
-import com.wxl.dyttcrawler.core.ThreadPool
 import com.wxl.dyttcrawler.downloader.HttpDownloader
 import com.wxl.dyttcrawler.processor.DyttProcessor
 import com.wxl.dyttcrawler.processor.ProcessorDispatcher
 import com.wxl.dyttcrawler.properties.CrawlerProperties
 import com.wxl.dyttcrawler.properties.SiteProperties
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +19,9 @@ import us.codecraft.webmagic.Site
 import us.codecraft.webmagic.pipeline.Pipeline
 import us.codecraft.webmagic.processor.PageProcessor
 import us.codecraft.webmagic.scheduler.Scheduler
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
 /**
@@ -39,12 +43,13 @@ class CrawlerConfiguration(
         pageProcessor: PageProcessor,
         downloader: HttpDownloader,
         pipelines: ObjectProvider<Pipeline>,
-        threadPool: ThreadPool,
+        coroutineScope: CrawlerCoroutineScope,
         scheduler: Scheduler,
         listeners: ObjectProvider<CrawlerListener>
     ): Crawler? {
         val taskId = environment.getRequiredProperty("spring.application.name")
         val startUrl = crawlerProperties.startUrl
+        val concurrentNum = crawlerProperties.concurrentNum
 
         return Crawler.build {
             this.taskId = taskId
@@ -52,19 +57,36 @@ class CrawlerConfiguration(
             this.downloader = downloader
             this.pipelines = pipelines.orderedStream().collect(Collectors.toList())
             this.scheduler = scheduler
-            this.threadPool = threadPool
+            this.coroutineScope = coroutineScope
             this.startRequests = listOf(Request(startUrl))
             this.exitWhenComplete = true
+            this.concurrentNums = concurrentNum
             this.crawlerListeners = listeners.orderedStream().collect(Collectors.toList())
         }
     }
 
     /**
-     * 线程池
+     * 爬虫线程池
+     */
+    @Bean(destroyMethod = "shutdown")
+    fun crawlerExecutorService(): ThreadPoolExecutor {
+        val maxThreads = crawlerProperties.maxThreads
+        return ThreadPoolExecutor(
+            1, maxThreads,
+            10, TimeUnit.MINUTES,
+            SynchronousQueue(),
+            ThreadFactoryBuilder().setDaemon(true).setNameFormat("crawler-pool-%s").build(),
+            ThreadPoolExecutor.AbortPolicy()
+        )
+    }
+
+    /**
+     * 爬虫的CoroutineScope
      */
     @Bean
-    fun crawlerExecutorService(): ThreadPool {
-        return ExecutorThreadPool(crawlerProperties.maxThreads)
+    fun crawlerCoroutineScope(poolExecutor: ThreadPoolExecutor): CrawlerCoroutineScope {
+        val dispatcher = poolExecutor.asCoroutineDispatcher()
+        return CrawlerCoroutineScope(dispatcher)
     }
 
     /**
@@ -86,8 +108,6 @@ class CrawlerConfiguration(
         userAgent = siteProperties.userAgent
         sleepTime = siteProperties.sleepTime.toMillis().toInt()
         retryTimes = siteProperties.retryTimes
-        cycleRetryTimes = siteProperties.cycleRetryTimes
-        retrySleepTime = siteProperties.retrySleepTime.toMillis().toInt()
         timeOut = siteProperties.timeout.toMillis().toInt()
         if (siteProperties.acceptStatusCode.isNotEmpty()) {
             acceptStatCode = siteProperties.acceptStatusCode.toSet()

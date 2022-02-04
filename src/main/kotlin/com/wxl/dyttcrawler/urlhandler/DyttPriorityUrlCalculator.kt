@@ -29,7 +29,7 @@ class DyttPriorityUrlCalculator : PriorityUrlCalculator {
     var depthWeight = 0.3f
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(DyttPriorityUrlCalculator::class.java)
     }
 
     override fun calculate(page: Page, url: URL): Int {

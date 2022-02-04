@@ -24,7 +24,7 @@ class MetaRefreshPageProcessor(
 ) : AbstractDyttProcessor(priorityUrlCalculator, urlFilter) {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(MetaRefreshPageProcessor::class.java)
 
         private val LOCATION_PATTERN = Pattern.compile("URL=(.+)")
     }
@@ -44,7 +44,7 @@ class MetaRefreshPageProcessor(
     }
 
     override fun match(page: Page): Boolean {
-        return getRefreshMeta(page) != null
+        return getRefreshMeta(page) !== null
     }
 
     private fun getRefreshMeta(page: Page): Element? {

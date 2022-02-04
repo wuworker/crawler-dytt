@@ -17,5 +17,5 @@ interface CrawlerListener {
     /**
      * 失败处理
      */
-    fun onError(request: Request, task: Task)
+    fun onError(request: Request, task: Task, e: Exception?)
 }

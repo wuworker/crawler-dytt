@@ -3,6 +3,7 @@ package com.wxl.dyttcrawler
 /**
  * Create by wuxingle on 2021/9/11
  * main
+ * -Dkotlinx.coroutines.debug
  */
 
 import org.springframework.boot.autoconfigure.SpringBootApplication

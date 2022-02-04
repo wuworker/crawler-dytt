@@ -1,5 +1,7 @@
 package com.wxl.dyttcrawler.core
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,6 +23,12 @@ class CrawlerTest {
 
     @Test
     fun test() {
-        crawler.start(5,async = false)
+        crawler.start()
+
+        runBlocking {
+            delay(60 * 1000L)
+            crawler.stop()
+            crawler.awaitStopped()
+        }
     }
 }

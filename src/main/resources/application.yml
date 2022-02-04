@@ -53,19 +53,19 @@ crawler:
   start-url: "https://www.dytt8.net"
   allow-domains:
     - www.dytt8.net
-    - www.dytt8.com
-    - www.ygdy8.net
-    - www.ygdy8.com
-    - www.dydytt.net
-  max-threads: 1
+#    - www.dytt8.com
+#    - www.ygdy8.net
+#    - www.ygdy8.com
+#    - www.dydytt.net
+  max-threads: 3
+  concurrent-num: 1
   site:
     domain: "www.dytt8.net"
     charset: gbk
     sleep-time: 5s
-    retry-times: 0
-    cycle-retry-times: 1
-    retry-sleep-time: 1s
+    retry-times: 1
     timeout: 20s
+    user-agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36'
   download:
     ignore-ssl: true
     use-security: false
@@ -78,5 +78,5 @@ crawler:
   store:
     es:
       pool:
-        max-threads: 10
+        max-threads: 3
 

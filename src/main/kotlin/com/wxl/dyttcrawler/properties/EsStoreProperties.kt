@@ -16,6 +16,6 @@ data class EsStoreProperties(
 
 data class EsPoolProperties(
 
-    var maxThreads: Int = 10
+    var maxThreads: Int = 5
 )
 

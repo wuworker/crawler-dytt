@@ -1,9 +1,7 @@
 package com.wxl.dyttcrawler.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.wxl.dyttcrawler.core.ElasticConstants.DYTT_INDEX
-import com.wxl.dyttcrawler.core.ElasticConstants.DYTT_TYPE
 import com.wxl.dyttcrawler.domain.DyttMovie
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.update.UpdateRequest
@@ -31,14 +29,14 @@ class DyttEsStorePipeline(
     Closeable {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(DyttEsStorePipeline::class.java)
     }
 
     override fun process(obj: DyttMovie, resultItems: ResultItems, task: Task) {
-        val doc = objectMapper.writer(SerializationFeature.WRITE_NULL_MAP_VALUES)
+        val doc = objectMapper.writer()
             .writeValueAsString(obj)
 
-        val request = UpdateRequest(DYTT_INDEX, DYTT_TYPE, obj.id)
+        val request = UpdateRequest(DYTT_INDEX, obj.id)
         request.doc(doc, XContentType.JSON)
 
         request.upsert(doc, XContentType.JSON)
